@@ -3,7 +3,6 @@
 
 using namespace std;
 
-
 void parseProgramParameters(int argc, char* argv[]){
 	if (argc<2){ // not enough arguments
 		exit(0);
