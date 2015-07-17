@@ -1,4 +1,5 @@
 #include <string>
+#include "cuda_error_check.h"
 
 using namespace std;
 
@@ -13,5 +14,6 @@ void parseProgramParameters(int argc, char* argv[]){
 
 int main(int argc, char *argv[]) {
 	fprintf(stdout, "\n## PROGRAM PARAMETERS \n");
+	checkCudaRequirements();
 	parseProgramParameters(argc, argv);
 }
