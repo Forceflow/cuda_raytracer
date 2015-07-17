@@ -24,6 +24,9 @@
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\cuda_error_check.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D391DFA-632E-4481-9322-F0ABBFF59EF6}</ProjectGuid>
     <RootNamespace>cuda_raytracer</RootNamespace>

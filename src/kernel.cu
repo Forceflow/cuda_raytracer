@@ -4,15 +4,13 @@
 
 cudaError_t cuda();
 
-__global__ void kernel()
-{
+__global__ void kernel(){
   
 }
 
 
 // Helper function for using CUDA to add vectors in parallel.
-cudaError_t cuda()
-{
+cudaError_t cuda(){
     cudaError_t cudaStatus;
     return cudaStatus;
 }
