@@ -5,7 +5,6 @@
 #include <iostream>
 #include <fstream>
 #include "assert.h"
-#include "util.h"
 
 //#define SILENT
 

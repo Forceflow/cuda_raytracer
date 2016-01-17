@@ -15,7 +15,6 @@ int checkCudaRequirements(){
 	HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&properties, 0));
 	fprintf(stdout, "Device %d: \"%s\".\n", 0, properties.name);
 	fprintf(stdout, "Available global device memory: %llu bytes. \n", properties.totalGlobalMem);
-	// Check compute capability
 	if (properties.major < 2){
 		fprintf(stderr, "Your cuda device has compute capability %i.%i. We need at least 2.0 for atomic operations. \n", properties.major, properties.minor);
 		return 0;
