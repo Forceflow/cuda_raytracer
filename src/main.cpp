@@ -1,7 +1,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <string>
+
 #include "cuda_error_check.h"
+#include <cuda_runtime.h>
+#include <cuda_gl_interop.h>
 
 using namespace std;
 
@@ -72,7 +75,6 @@ bool initGL(){
 }
 
 bool initGLFW(){
-	// GLFW
 	if (!glfwInit()) exit(EXIT_FAILURE);
 	window = glfwCreateWindow(width, height, "Voxel Ray Caster", NULL, NULL);
 	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
