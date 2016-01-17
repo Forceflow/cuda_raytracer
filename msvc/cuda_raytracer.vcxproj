@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cuda_error_check.h" />
+    <ClInclude Include="..\src\shader_tools.h" />
     <ClInclude Include="..\src\util_io.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -5,6 +5,7 @@
 #include "cuda_error_check.h"
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
+#include "shader_tools.h"
 
 using namespace std;
 
@@ -12,6 +13,60 @@ using namespace std;
 GLFWwindow* window;
 int width = 512;
 int height = 512;
+
+// CUDA OPENGL interop
+unsigned int *cuda_dest_resource;
+GLuint shDrawTex;  // draws a texture
+struct cudaGraphicsResource *cuda_tex_result_resource;
+GLuint fbo_source;
+struct cudaGraphicsResource *cuda_tex_screen_resource;
+unsigned int size_tex_data;
+unsigned int num_texels;
+unsigned int num_values;
+// (offscreen) render target fbo variables
+GLuint tex_screen;      // where we render the image
+GLuint tex_cudaResult;  // where we will copy the CUDA result
+#ifndef USE_TEXTURE_RGBA8UI
+#   pragma message("Note: Using Texture fmt GL_RGBA16F_ARB")
+#else
+// NOTE: the current issue with regular RGBA8 internal format of textures
+// is that HW stores them as BGRA8. Therefore CUDA will see BGRA where users
+// expected RGBA8. To prevent this issue, the driver team decided to prevent this to happen
+// instead, use RGBA8UI which required the additional work of scaling the fragment shader
+// output from 0-1 to 0-255. This is why we have some GLSL code, in this case
+#   pragma message("Note: Using Texture RGBA8UI + GLSL for rendering")
+#endif
+GLuint shDraw;
+
+extern "C" void
+launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
+
+// GLSL shaders
+static const char *glsl_drawtex_vertshader_src =
+"void main(void)\n"
+"{\n"
+"	gl_Position = gl_Vertex;\n"
+"	gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;\n"
+"}\n";
+
+static const char *glsl_drawtex_fragshader_src =
+"#version 130\n"
+"uniform usampler2D texImage;\n"
+"void main()\n"
+"{\n"
+"   vec4 c = texture(texImage, gl_TexCoord[0].xy);\n"
+"	gl_FragColor = c / 255.0;\n"
+"}\n";
+
+static const char *glsl_draw_fragshader_src =
+"#version 130\n"
+"out uvec4 FragColor;\n"
+"void main()\n"
+"{"
+"  FragColor = uvec4(gl_Color.xyz * 255.0, 255.0);\n"
+"}\n";
+
+
 
 void display(void){
 	glClear(GL_COLOR_BUFFER_BIT);
