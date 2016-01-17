@@ -10,16 +10,14 @@ GLFWwindow* window;
 int width = 512;
 int height = 512;
 
-void display(void)
-{
+void display(void){
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window);
 	// call to display image here
 }
 
 // Keyboard
-void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
+void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mods){
 	switch (key) {
 	}
 }
