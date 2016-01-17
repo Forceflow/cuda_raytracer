@@ -42,31 +42,8 @@ extern "C" void
 launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
 
 // GLSL shaders
-static const char *glsl_drawtex_vertshader_src =
-"void main(void)\n"
-"{\n"
-"	gl_Position = gl_Vertex;\n"
-"	gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;\n"
-"}\n";
-
-static const char *glsl_drawtex_fragshader_src =
-"#version 130\n"
-"uniform usampler2D texImage;\n"
-"void main()\n"
-"{\n"
-"   vec4 c = texture(texImage, gl_TexCoord[0].xy);\n"
-"	gl_FragColor = c / 255.0;\n"
-"}\n";
-
-static const char *glsl_draw_fragshader_src =
-"#version 130\n"
-"out uvec4 FragColor;\n"
-"void main()\n"
-"{"
-"  FragColor = uvec4(gl_Color.xyz * 255.0, 255.0);\n"
-"}\n";
-
-
+static std::string glsl_drawtex_vertshader_src;
+static std::string glsl_drawtex_fragshader_src;
 
 void display(void){
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -126,6 +103,8 @@ bool initGL(){
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 60.0f);*/
 
 	//SDK_CHECK_ERROR_GL();
+	glsl_drawtex_vertshader_src = loadFileToString("vertex_shader.glsl");
+
 	return true;
 }
 

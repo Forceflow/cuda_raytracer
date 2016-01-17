@@ -5,7 +5,7 @@
 #include <exception>
 
 // static, we only want this function to be available in this file scope
-static std::string loadFileToString(const char* const filename){
+static std::string loadFileToString(const char *filename){
 	std::ifstream file(filename, std::ios::in);
 	std::string text;
 
