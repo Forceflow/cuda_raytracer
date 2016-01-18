@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="..\src\kernel.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\cuda_error_check.cpp">
+      <Filter>cuda</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util_io.cpp">
+      <Filter>util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\main_basic_gl.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="headers">
+      <UniqueIdentifier>{d07b1233-44f5-41c4-9d4a-9ed2e6d924dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cuda">
+      <UniqueIdentifier>{76579388-caa3-4e1c-894e-99f6d84748ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="cuda\headers">
+      <UniqueIdentifier>{1ee667ce-b94d-40fa-af20-dac20a26b291}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util">
+      <UniqueIdentifier>{ac0c5cee-30ae-4463-ac7b-41740c5127d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="util\headers">
+      <UniqueIdentifier>{5e2687d8-2e49-45fa-ac7d-9b306fda06b5}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\cuda_error_check.h">
+      <Filter>cuda\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util_io.h">
+      <Filter>util\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader_tools.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\fragment_shader.glsl" />
+    <None Include="..\src\vertex_shader.glsl" />
+  </ItemGroup>
+</Project>
