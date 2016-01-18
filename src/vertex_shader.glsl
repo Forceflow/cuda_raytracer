@@ -1,7 +1,6 @@
 #version 130
-uniform usampler2D texImage;
-void main()
+void main(void)
 {
-   vec4 c = texture(texImage, gl_TexCoord[0].xy);
-   gl_FragColor = c / 255.0;
+	gl_Position = gl_Vertex;
+	gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
 }

@@ -41,10 +41,6 @@ GLuint shDraw;
 extern "C" void
 launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
 
-// GLSL shaders
-static std::string glsl_drawtex_vertshader_src;
-static std::string glsl_drawtex_fragshader_src;
-
 void display(void){
 	glClear(GL_COLOR_BUFFER_BIT);
 	glfwSwapBuffers(window);
@@ -68,16 +64,19 @@ void parseProgramParameters(int argc, char* argv[]){
 bool initGL(){
 	// initialize necessary OpenGL extensions
 	glewInit();
-	if (!glewIsSupported(
-		"GL_VERSION_2_0 "
-		"GL_ARB_pixel_buffer_object "
-		"GL_EXT_framebuffer_object "
-		))
-	{
-		printf("ERROR: Support for necessary OpenGL extensions missing.");
-		fflush(stderr);
-		return false;
-	}
+	//if (!glewIsSupported(
+	//	//"GL_VERSION_2_0"
+	//	//"GL_ARB_pixel_buffer_object"
+	//	//"GL_EXT_framebuffer_object"
+	//	"ARB_depth_clamp"))
+	//{
+	//	printf("ERROR: Support for necessary OpenGL extensions missing.");
+	//	fflush(stderr);
+	//	return false;
+	//}
+
+	printf("%s\n", glGetString(GL_VERSION));
+	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	// default initialization
 #ifndef USE_TEXTURE_RGBA8UI
@@ -103,18 +102,27 @@ bool initGL(){
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 60.0f);*/
 
 	//SDK_CHECK_ERROR_GL();
-	glsl_drawtex_vertshader_src = loadFileToString("vertex_shader.glsl");
+	//glsl_drawtex_vertshader_src = loadFileToString("vertex_shader.glsl");
 
 	return true;
 }
 
 bool initGLFW(){
 	if (!glfwInit()) exit(EXIT_FAILURE);
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	
 	window = glfwCreateWindow(width, height, "Voxel Ray Caster", NULL, NULL);
 	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 	glfwSetKeyCallback(window, keyboardfunc);
+
+	printf("%i \n", glfwGetWindowAttrib(window, GLFW_OPENGL_PROFILE));
+	printf("%i \n", GLFW_OPENGL_COMPAT_PROFILE);
+	printf("%i \n", GLFW_OPENGL_CORE_PROFILE);
+
 	return true;
 }
 
