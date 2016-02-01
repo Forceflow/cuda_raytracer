@@ -59,6 +59,7 @@ void display(void){
 
 	// Draw
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
+
 	glUseProgram(shaderProgram);
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

@@ -15,7 +15,8 @@ static std::string loadFileToString(const char *filename){
 		file.seekg(0, std::ios::beg); // back to begin
 		file.read(&text[0], text.size()); // read into buffer
 		file.close();
-	} else {
+	}
+	else {
 		std::string error_message = std::string("File not found: ") + filename;
 		fprintf(stderr, error_message.c_str());
 		throw std::runtime_error(error_message);
@@ -23,6 +24,36 @@ static std::string loadFileToString(const char *filename){
 
 	return text;
 }
+
+class Shader{
+	GLuint shader;
+	std::string shader_location;
+	std::string shader_source_text;
+	GLint compiled;
+
+	Shader(const std::string shader_location) : compiled(0), shader_location(shader_location) {
+		shader_source_text = loadFileToString(shader_location.c_str());
+	}
+
+	void Shader::compile(){
+		shader = glCreateShader(GL_VERTEX_SHADER);
+		const char *c_str = shader_source_text.c_str();
+		glShaderSource(shader, 1, &c_str, NULL);
+		glCompileShader(shader);
+
+		// check if shader compiled
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+
+		if (!compiled){
+			char temp[256] = "";
+			glGetShaderInfoLog(shader, 256, NULL, temp);
+			printf("Vtx Compile failed:\n%s\n", temp);
+			glDeleteShader(shader);
+		}
+	}
+};
+
+
 
 GLuint compileGLSLprogram(const char *vertex_shader_src, const char *fragment_shader_src)
 {
