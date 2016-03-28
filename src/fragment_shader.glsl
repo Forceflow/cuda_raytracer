@@ -1,6 +1,8 @@
 #version 130
-out uvec4 FragColor;
+uniform usampler2D texImage;
+out vec4 fragcolor; // only one output, so assigned to 0 (automatically) (otherwise use
 void main()
 {
-  FragColor = uvec4(gl_Color.xyz * 255.0, 255.0);
+    vec4 c = texture(texImage, gl_TexCoord[0].xy);
+	fragcolor = c / 255.0;
 }

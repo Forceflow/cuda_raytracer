@@ -15,13 +15,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\cuda_error_check.cpp" />
-    <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\main.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\main_basic_gl.cpp" />
     <ClCompile Include="..\src\util_io.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cuda_error_check.h" />
     <ClInclude Include="..\src\shader_tools.h" />
     <ClInclude Include="..\src\util_io.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\fragment_shader.glsl" />
+    <None Include="..\src\vertex_shader.glsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D391DFA-632E-4481-9322-F0ABBFF59EF6}</ProjectGuid>
