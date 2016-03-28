@@ -67,6 +67,8 @@ void parseProgramParameters(int argc, char* argv[]){
 
 bool initGL(){
 	// initialize necessary OpenGL extensions
+
+	// TODO: print some OpenGL info here
 	glewInit();
 	if (!glewIsSupported(
 		"GL_VERSION_2_0 "
