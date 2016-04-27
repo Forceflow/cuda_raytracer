@@ -47,7 +47,7 @@ class Shader{
 		if (!compiled){
 			char temp[256] = "";
 			glGetShaderInfoLog(shader, 256, NULL, temp);
-			printf("Vtx Compile failed:\n%s\n", temp);
+			printf("Vertex shader compilation failed:\n%s\n", temp);
 			glDeleteShader(shader);
 		}
 	}
@@ -73,7 +73,7 @@ GLuint compileGLSLprogram(const char *vertex_shader_src, const char *fragment_sh
 		if (!compiled){
 			char temp[256] = "";
 			glGetShaderInfoLog(v, 256, NULL, temp);
-			printf("Vtx Compile failed:\n%s\n", temp);
+			printf("Vertex shader compilation failed:\n%s\n", temp);
 			glDeleteShader(v);
 			return 0;
 		}
@@ -94,7 +94,7 @@ GLuint compileGLSLprogram(const char *vertex_shader_src, const char *fragment_sh
 		if (!compiled){
 			char temp[256] = "";
 			glGetShaderInfoLog(f, 256, NULL, temp);
-			printf("frag Compile failed:\n%s\n", temp);
+			printf("Fragment shader compilation failed:\n%s\n", temp);
 			glDeleteShader(f);
 			return 0;
 		}
@@ -119,20 +119,3 @@ GLuint compileGLSLprogram(const char *vertex_shader_src, const char *fragment_sh
 
 	return p;
 }
-
-//GLuint LoadShader(GLenum eShaderType, const char* const filename)
-//{
-//	std::string shader_source = loadFileToString(filename);
-//	GLuint shader = glCreateShader(eShaderType);
-//
-//
-//	try
-//	{
-//		return glutil::CompileShader(eShaderType, shaderData.str());
-//	}
-//	catch (std::exception &e)
-//	{
-//		fprintf(stderr, "%s\n", e.what());
-//		throw;
-//	}
-//}
