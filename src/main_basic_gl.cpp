@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
 #include "shader_tools.h"
+#include "gl_tools.h"
 
 using namespace std;
 
@@ -104,8 +105,7 @@ int main(int argc, char *argv[]) {
 	printf("%i \n", GLFW_OPENGL_COMPAT_PROFILE);
 	printf("%i \n", GLFW_OPENGL_CORE_PROFILE);
 
-	printf("%s\n", glGetString(GL_VERSION));
-	printf("%s\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	printglInfo();
 
 	// Generate buffers
 	glGenVertexArrays(1, &VAO);
