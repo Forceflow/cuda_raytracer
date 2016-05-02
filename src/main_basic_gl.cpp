@@ -33,24 +33,6 @@ GLuint indices[] = {  // Note that we start from 0!
 	1, 2, 3   // Second Triangle
 };
 
-// Shaders
-const GLchar* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 position;\n"
-"layout(location = 1) in vec3 color;\n"
-"out vec3 vertexcolor;\n"
-"void main()\n"
-"{\n"
-"vertexcolor = color;\n"
-"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-"}\0";
-const GLchar* fragmentShaderSource = "#version 330 core\n"
-"in vec3 vertexcolor;\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = vec4(vertexcolor, 1.0f);\n"
-"}\n\0";
-
 void display(void){
 	glfwPollEvents();
 	// Clear the colorbuffer
@@ -113,7 +95,14 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &EBO);
 
 	// Compile shaders
-	shaderProgram = compileGLSLprogram(vertexShaderSource, fragmentShaderSource);
+	Shader vertex("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl", GL_VERTEX_SHADER);
+	vertex.compile();
+	Shader fragment("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl", GL_FRAGMENT_SHADER);
+	fragment.compile();
+	GLSLProgram program(vertex, fragment);
+	program.compile();
+
+	shaderProgram = program.program;
 
 	// Buffer setup
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).

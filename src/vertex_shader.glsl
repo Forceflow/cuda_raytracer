@@ -1,12 +1,10 @@
-#version 130
+#version 330 core
 
-// beter: vertices in VBO rammen en hier - layout(location = 0) in vec4 position;
+layout(location = 0) in vec3 position;
+layout(location = 1) in vec3 color;
+out vec3 vertexcolor;
 
-void main(void)
-{
-	gl_Position = gl_Vertex;
-	gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;
+void main(){
+	vertexcolor = color;
+	gl_Position = vec4(position.x, position.y, position.z, 1.0);
 }
-
-// gl_Position is a builtin
-// gl_TexCoord is deprecated

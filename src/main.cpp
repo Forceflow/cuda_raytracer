@@ -123,26 +123,6 @@ bool initGL(){
 	return true;
 }
 
-// Shaders
-const GLchar* vertexShaderSource = "#version 330 core\n"
-"layout (location = 0) in vec3 position;\n"
-"layout(location = 1) in vec3 color;\n"
-"out vec3 vertexcolor;\n"
-"void main()\n"
-"{\n"
-"vertexcolor = color;\n"
-"gl_Position = vec4(position.x, position.y, position.z, 1.0);\n"
-"}\0";
-const GLchar* fragmentShaderSource = "#version 330 core\n"
-"in vec3 vertexcolor;\n"
-"out vec4 color;\n"
-"void main()\n"
-"{\n"
-"color = vec4(vertexcolor, 1.0f);\n"
-"}\n\0";
-
-
-
 // Is called whenever a key is pressed/released via GLFW
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
@@ -208,7 +188,11 @@ int main(int argc, char *argv[]) {
 		glBindBuffer(GL_ARRAY_BUFFER, 0); // Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound vertex buffer object so afterwards we can safely unbind
 	glBindVertexArray(0); // Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 
-	shaderProgram = compileGLSLprogram(vertexShaderSource, fragmentShaderSource);
+	//shaderProgram = compileGLSLprogram(vertexShaderSource, fragmentShaderSource);
+	Shader vertex("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
+	Shader fragment("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
+
+	GLSLProgram(vertex, fragment);
 
 	while (!glfwWindowShouldClose(window))
 	{
