@@ -29,6 +29,8 @@
     <ClInclude Include="..\src\cuda_error_check.h">
       <Filter>cuda</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\shader_tools.h" />
+	<ClInclude Include="..\src\gl_tools.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\fragment_shader.glsl" />
