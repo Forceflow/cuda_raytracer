@@ -25,7 +25,7 @@ static std::string loadFileToString(const char *filename){
 	return text;
 }
 
-class Shader{
+class GLSLShader{
 public:
 	GLuint shader;
 	GLint compiled;
@@ -35,11 +35,11 @@ private:
 	std::string shader_source_text;
 
 public:
-	Shader::Shader(const std::string shader_location, GLenum shadertype) : shader(0), shader_location(shader_location), compiled(false), shadertype(shadertype) {
+	GLSLShader::GLSLShader(const std::string shader_location, GLenum shadertype) : shader(0), shader_location(shader_location), compiled(false), shadertype(shadertype) {
 		shader_source_text = loadFileToString(shader_location.c_str());
 	}
 
-	void Shader::compile(){
+	void GLSLShader::compile(){
 		shader = glCreateShader(shadertype);
 		const char *c_str = shader_source_text.c_str();
 		glShaderSource(shader, 1, &c_str, NULL);
@@ -64,11 +64,11 @@ public:
 	bool compiled;
 
 private:
-	Shader vertex_shader;
-	Shader fragment_shader;
+	GLSLShader vertex_shader;
+	GLSLShader fragment_shader;
 
 public:
-	GLSLProgram::GLSLProgram(Shader vertex, Shader fragment) : program(0), vertex_shader(vertex), fragment_shader(fragment), compiled(false) {
+	GLSLProgram::GLSLProgram(GLSLShader vertex, GLSLShader fragment) : program(0), vertex_shader(vertex), fragment_shader(fragment), compiled(false) {
 	}
 
 	void GLSLProgram::compile(){

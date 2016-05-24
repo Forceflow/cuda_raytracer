@@ -1,12 +1,13 @@
-#include <GL/glew.h>
+#include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
-#include <string>
-
 #include "cuda_error_check.h"
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
+#include <string>
+
 #include "shader_tools.h"
 #include "gl_tools.h"
+#include "glfw_tools.h"
 
 using namespace std;
 
@@ -83,10 +84,8 @@ int main(int argc, char *argv[]) {
 	initGLFW();
 	initGL();
 
-	printf("%i \n", glfwGetWindowAttrib(window, GLFW_OPENGL_PROFILE));
-	printf("%i \n", GLFW_OPENGL_COMPAT_PROFILE);
-	printf("%i \n", GLFW_OPENGL_CORE_PROFILE);
-
+	printGLFWInfo(window);
+	printglewInfo();
 	printglInfo();
 
 	// Generate buffers
@@ -95,9 +94,9 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &EBO);
 
 	// Compile shaders
-	Shader vertex("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl", GL_VERTEX_SHADER);
+	GLSLShader vertex("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl", GL_VERTEX_SHADER);
 	vertex.compile();
-	Shader fragment("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl", GL_FRAGMENT_SHADER);
+	GLSLShader fragment("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl", GL_FRAGMENT_SHADER);
 	fragment.compile();
 	GLSLProgram program(vertex, fragment);
 	program.compile();

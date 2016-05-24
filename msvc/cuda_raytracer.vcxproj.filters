@@ -30,7 +30,8 @@
       <Filter>cuda</Filter>
     </ClInclude>
     <ClInclude Include="..\src\shader_tools.h" />
-	<ClInclude Include="..\src\gl_tools.h" />
+    <ClInclude Include="..\src\gl_tools.h" />
+    <ClInclude Include="..\src\glfw_tools.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\fragment_shader.glsl" />
