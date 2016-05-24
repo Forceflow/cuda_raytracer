@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
 	initGL();
 
 	printGLFWInfo(window);
-	printglewInfo();
-	printglInfo();
+	printGlewInfo();
+	printGLInfo();
 
 	// Generate buffers
 	glGenVertexArrays(1, &VAO);
