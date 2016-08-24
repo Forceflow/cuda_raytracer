@@ -16,9 +16,11 @@
   <ItemGroup>
     <ClCompile Include="..\src\cuda_error_check.cpp" />
     <ClCompile Include="..\src\main.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\src\main_basic_gl.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\src\main_basic_gl.cpp" />
     <ClCompile Include="..\src\util_io.cpp" />
   </ItemGroup>
   <ItemGroup>
