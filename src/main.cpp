@@ -1,10 +1,12 @@
+// OpenGL
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
-//#include "cuda_error_check.h"
-//#include <cuda_runtime.h>
-//#include <cuda_gl_interop.h>
+// CUDA
+#include "cuda_error_check.h"
+#include <cuda_runtime.h>
+#include <cuda_gl_interop.h>
+// C++ libs
 #include <string>
-
 #include "shader_tools.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
