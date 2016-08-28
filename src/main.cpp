@@ -22,6 +22,51 @@ int height = 512;
 GLuint shaderProgram;
 GLuint VBO, VAO, EBO;
 
+// Cuda <-> OpenGl interop resources
+unsigned int *cuda_dest_resource;
+GLuint shDrawTex;  // draws a texture
+struct cudaGraphicsResource *cuda_tex_result_resource;
+GLuint fbo_source;
+struct cudaGraphicsResource *cuda_tex_screen_resource;
+unsigned int size_tex_data;
+unsigned int num_texels;
+unsigned int num_values;
+// (offscreen) render target fbo variables
+GLuint tex_screen;      // where we render the image
+GLuint tex_cudaResult;  // where we will copy the CUDA result
+GLuint shDraw;
+const GLenum fbo_targets[] =
+{
+	GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT,
+	GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT
+};
+
+// Shaders from CUDA2GL sample
+static const char *glsl_drawtex_vertshader_src =
+"void main(void)\n"
+"{\n"
+"	gl_Position = gl_Vertex;\n"
+"	gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;\n"
+"}\n";
+
+static const char *glsl_drawtex_fragshader_src =
+"#version 130\n"
+"uniform usampler2D texImage;\n"
+"void main()\n"
+"{\n"
+"   vec4 c = texture(texImage, gl_TexCoord[0].xy);\n"
+"	gl_FragColor = c / 255.0;\n"
+"}\n";
+
+static const char *glsl_draw_fragshader_src =
+"#version 130\n"
+"out uvec4 FragColor;\n"
+"void main()\n"
+"{"
+"  FragColor = uvec4(gl_Color.xyz * 255.0, 255.0);\n"
+"}\n";
+
+// QUAD GEOMETRY
 GLfloat vertices[] = {
 	// Positions          // Colors           // Texture Coords
 	0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // Top Right
@@ -29,9 +74,7 @@ GLfloat vertices[] = {
 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Bottom Left
 	-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // Top Left 
 };
-
 // you can also put positions, colors and coordinates in seperate VBO's
-
 GLuint indices[] = {  // Note that we start from 0!
 	0, 1, 3,  // First Triangle
 	1, 2, 3   // Second Triangle
