@@ -7,7 +7,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <IncludePath>$(GLEW_DIR)\include;$(GLFW_DIR)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(GLEW_DIR)\lib\Release\x64;$(GLFW_DIR)\lib-vc2013;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(GLEW_DIR)\lib\Release\x64;$(GLFW_DIR)\lib-vc2015;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <Link>

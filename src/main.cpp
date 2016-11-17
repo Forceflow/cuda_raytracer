@@ -24,8 +24,8 @@ GLuint VBO, VAO, EBO;
 
 // Cuda <-> OpenGl interop resources
 unsigned int *cuda_dest_resource;
-GLuint shDrawTex;  // draws a texture
 struct cudaGraphicsResource *cuda_tex_result_resource;
+GLuint shDrawTex;  // draws a texture
 GLuint fbo_source;
 struct cudaGraphicsResource *cuda_tex_screen_resource;
 unsigned int size_tex_data;
@@ -95,8 +95,7 @@ void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, size_x, size_y, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, NULL);
 	SDK_CHECK_ERROR_GL();
 	// register this texture with CUDA
-	/*checkCudaErrors(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult,
-		GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));*/
+	CHECK_CUDA_ERROR(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
 
 void display(void){
