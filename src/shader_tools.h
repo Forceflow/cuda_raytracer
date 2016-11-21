@@ -35,8 +35,15 @@ private:
 	std::string shader_source_text;
 
 public:
-	GLSLShader::GLSLShader(const std::string shader_location, GLenum shadertype) : shader(0), shader_location(shader_location), compiled(false), shadertype(shadertype) {
-		shader_source_text = loadFileToString(shader_location.c_str());
+	GLSLShader::GLSLShader(const std::string shader, GLenum shadertype, bool fromfile) : shader(0), compiled(false), shadertype(shadertype) {
+		if (fromfile) {
+			shader_source_text = loadFileToString(shader.c_str());
+			shader_location = shader;
+		}
+		else {
+			shader_source_text = shader;
+			shader_location = "From const string";
+		}
 	}
 
 	void GLSLShader::compile(){

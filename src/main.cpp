@@ -156,9 +156,9 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &EBO);
 
 	// Compile shaders
-	GLSLShader vertex("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl", GL_VERTEX_SHADER);
+	GLSLShader vertex("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl", GL_VERTEX_SHADER, true);
 	vertex.compile();
-	GLSLShader fragment("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl", GL_FRAGMENT_SHADER);
+	GLSLShader fragment("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl", GL_FRAGMENT_SHADER, true);
 	fragment.compile();
 	GLSLProgram program(vertex, fragment);
 	program.compile();
