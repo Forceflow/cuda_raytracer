@@ -93,9 +93,11 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &EBO);
 
 	// Compile shaders
-	GLSLShader vertex("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl", GL_VERTEX_SHADER);
+	std::string vertexsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
+	GLSLShader vertex(std::string("Vertex shader"), vertexsrc.c_str() , GL_VERTEX_SHADER);
 	vertex.compile();
-	GLSLShader fragment("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl", GL_FRAGMENT_SHADER);
+	std::string fragmentsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl");
+	GLSLShader fragment(std::string("Fragment shader"), fragmentsrc.c_str(), GL_FRAGMENT_SHADER);
 	fragment.compile();
 	GLSLProgram program(vertex, fragment);
 	program.compile();

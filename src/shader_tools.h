@@ -5,7 +5,7 @@
 #include <exception>
 
 // static, we only want this function to be available in this file scope
-static std::string loadFileToString(const char *filename){
+inline std::string loadFileToString(const char *filename){
 	std::ifstream file(filename, std::ios::in);
 	std::string text;
 
@@ -31,25 +31,17 @@ public:
 	GLint compiled;
 	GLenum shadertype;
 private:
-	std::string shader_location;
-	std::string shader_source_text;
+	std::string shader_name;
+	const char* shader_src;
 
 public:
-	GLSLShader::GLSLShader(const std::string shader, GLenum shadertype, bool fromfile) : shader(0), compiled(false), shadertype(shadertype) {
-		if (fromfile) {
-			shader_source_text = loadFileToString(shader.c_str());
-			shader_location = shader;
-		}
-		else {
-			shader_source_text = shader;
-			shader_location = "From const string";
-		}
+	GLSLShader::GLSLShader(std::string shader_name, const char *shader_text, GLenum shadertype) : 
+		shader(0), compiled(false), shadertype(shadertype), shader_name(shader_name), shader_src(shader_text){
 	}
 
 	void GLSLShader::compile(){
 		shader = glCreateShader(shadertype);
-		const char *c_str = shader_source_text.c_str();
-		glShaderSource(shader, 1, &c_str, NULL);
+		glShaderSource(shader, 1, &shader_src, NULL);
 		glCompileShader(shader);
 
 		// check if shader compiled
@@ -58,7 +50,7 @@ public:
 		if (!compiled){
 			char temp[256] = "";
 			glGetShaderInfoLog(shader, 256, NULL, temp);
-			printf("Shader compilation error:\n%s\n%s\n", shader_location, temp);
+			printf("Shader compilation error:\n%s\n", temp);
 			glDeleteShader(shader);
 			compiled = true;
 		}
