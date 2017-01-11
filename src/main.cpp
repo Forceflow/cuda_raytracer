@@ -184,6 +184,7 @@ int main(int argc, char *argv[]) {
 	glEnableVertexAttribArray(1);
 	// Texture attribute (2 floats)
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	// Note that this is allowed, the call to glVertexAttribPointer registered VBO as the currently bound 
