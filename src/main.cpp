@@ -83,12 +83,12 @@ GLuint indices[] = {  // Note that we start from 0!
 void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int size_y)
 {
 	// create a texture
-	glGenTextures(1, tex_cudaResult);
-	glBindTexture(GL_TEXTURE_2D, *tex_cudaResult);
+	glGenTextures(1, tex_cudaResult); // generate 1 texture
+	glBindTexture(GL_TEXTURE_2D, *tex_cudaResult); // set it as current target
 
 	// set basic parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // clamp s coordinate
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // clamp t coordinate
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
