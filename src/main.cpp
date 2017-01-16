@@ -25,7 +25,7 @@ GLuint VBO, VAO, EBO;
 // Cuda <-> OpenGl interop resources
 unsigned int *cuda_dest_resource;
 struct cudaGraphicsResource *cuda_tex_result_resource;
-GLuint shDrawTex;  // draws a texture
+
 GLuint fbo_source;
 struct cudaGraphicsResource *cuda_tex_screen_resource;
 unsigned int size_tex_data;
@@ -34,7 +34,10 @@ unsigned int num_values;
 // (offscreen) render target fbo variables
 GLuint tex_screen;      // where we render the image
 GLuint tex_cudaResult;  // where we will copy the CUDA result
-GLuint shDraw;
+
+GLuint shDraw; // shader to draw
+GLuint shDrawTex; // shader for textured draw
+
 const GLenum fbo_targets[] =
 {
 	GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT,
@@ -97,6 +100,16 @@ void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int 
 	// register this texture with CUDA
 	CHECK_CUDA_ERROR(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
+
+//void initGLBuffers()
+//{
+//	// create texture that will receive the result of CUDA
+//	createTextureDst(&tex_cudaResult, width, height);
+//	// load shader programs
+//	shDraw = compileGLSLprogram(NULL, glsl_draw_fragshader_src);
+//	shDrawTex = compileGLSLprogram(glsl_drawtex_vertshader_src, glsl_drawtex_fragshader_src);
+//	SDK_CHECK_ERROR_GL();
+//}
 
 void display(void){
 	glfwPollEvents();
@@ -161,7 +174,7 @@ int main(int argc, char *argv[]) {
 	std::string fragmentsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl");
 	GLSLShader fragment(std::string("Fragment shader"), fragmentsrc.c_str(), GL_FRAGMENT_SHADER);
 	fragment.compile();
-	GLSLProgram program(vertex, fragment);
+	GLSLProgram program(&vertex, &fragment);
 	program.compile();
 
 	shaderProgram = program.program;

@@ -30,8 +30,8 @@ public:
 	GLuint shader;
 	GLint compiled;
 	GLenum shadertype;
-private:
 	std::string shader_name;
+private:
 	const char* shader_src;
 
 public:
@@ -63,21 +63,26 @@ public:
 	bool compiled;
 
 private:
-	GLSLShader vertex_shader;
-	GLSLShader fragment_shader;
+	GLSLShader* vertex_shader;
+	GLSLShader* fragment_shader;
 
 public:
-	GLSLProgram::GLSLProgram(GLSLShader vertex, GLSLShader fragment) : program(0), vertex_shader(vertex), fragment_shader(fragment), compiled(false) {
+	GLSLProgram::GLSLProgram(GLSLShader* vertex, GLSLShader* fragment) : program(0), vertex_shader(vertex), fragment_shader(fragment), compiled(false) {
 	}
 
 	void GLSLProgram::compile(){
 		program = glCreateProgram();
 
-		if (vertex_shader.compiled && fragment_shader.compiled){
-			glAttachShader(program, vertex_shader.shader);
-			glAttachShader(program, fragment_shader.shader);
+		// try to attach all shaders
+		GLSLShader* shaders[2] = {vertex_shader, fragment_shader};
+		for (unsigned int i = 0; i < 2; i++) {
+			if (shaders[i] != NULL) {
+				if (!shaders[i]->compiled) {shaders[i]->compile();} // compile shader if not yet compiled
+				glAttachShader(program, shaders[i]->shader);
+				printf("Attached shader: %s. \n", shaders[i]->shader_name.c_str());
+			}
 		}
-
+		
 		glLinkProgram(program);
 
 		int infologLength = 0;
