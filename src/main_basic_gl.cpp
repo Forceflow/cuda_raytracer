@@ -59,7 +59,7 @@ void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 bool initGL(){
-	glewExperimental = GL_TRUE;
+	glewExperimental = GL_TRUE; // need this to enforce core profile
 	glewInit();
 	glViewport(0, 0, width, height); // viewport for x,y to normalized device coordinates transformation
 	return true;

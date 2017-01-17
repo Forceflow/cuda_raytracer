@@ -35,6 +35,10 @@ private:
 	const char* shader_src;
 
 public:
+	GLSLShader::GLSLShader() :
+		shader(0), compiled(false), shadertype(0), shader_name(""), shader_src(0) {
+	}
+
 	GLSLShader::GLSLShader(std::string shader_name, const char *shader_text, GLenum shadertype) : 
 		shader(0), compiled(false), shadertype(shadertype), shader_name(shader_name), shader_src(shader_text){
 	}
@@ -67,6 +71,9 @@ private:
 	GLSLShader* fragment_shader;
 
 public:
+	GLSLProgram::GLSLProgram() : program(0), vertex_shader(NULL), fragment_shader(NULL), compiled(false) {
+	}
+
 	GLSLProgram::GLSLProgram(GLSLShader* vertex, GLSLShader* fragment) : program(0), vertex_shader(vertex), fragment_shader(fragment), compiled(false) {
 	}
 

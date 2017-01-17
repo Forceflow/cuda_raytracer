@@ -15,8 +15,8 @@ using namespace std;
 
 // GLFW
 GLFWwindow* window;
-int width = 512;
-int height = 512;
+int WIDTH = 512;
+int HEIGHT = 512;
 
 // OpenGL
 GLuint shaderProgram;
@@ -35,8 +35,11 @@ unsigned int num_values;
 GLuint tex_screen;      // where we render the image
 GLuint tex_cudaResult;  // where we will copy the CUDA result
 
-GLuint shDraw; // shader to draw
-GLuint shDrawTex; // shader for textured draw
+GLSLShader draw_f; // GLSL fragment shader
+GLSLShader drawtex_f; // GLSL fragment shader
+GLSLShader drawtex_v; // GLSL fragment shader
+GLSLProgram shdraw; // GLSL program to draw
+GLSLProgram shdrawtex; // GLSLS program for textured draw
 
 const GLenum fbo_targets[] =
 {
@@ -88,7 +91,6 @@ void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int 
 	// create a texture
 	glGenTextures(1, tex_cudaResult); // generate 1 texture
 	glBindTexture(GL_TEXTURE_2D, *tex_cudaResult); // set it as current target
-
 	// set basic parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // clamp s coordinate
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // clamp t coordinate
@@ -101,15 +103,21 @@ void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int 
 	CHECK_CUDA_ERROR(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
 
-//void initGLBuffers()
-//{
-//	// create texture that will receive the result of CUDA
-//	createTextureDst(&tex_cudaResult, width, height);
-//	// load shader programs
-//	shDraw = compileGLSLprogram(NULL, glsl_draw_fragshader_src);
-//	shDrawTex = compileGLSLprogram(glsl_drawtex_vertshader_src, glsl_drawtex_fragshader_src);
-//	SDK_CHECK_ERROR_GL();
-//}
+void initGLBuffers()
+{
+	// create texture that will receive the result of cuda
+	createTextureDst(&tex_cudaResult, WIDTH, HEIGHT);
+	// Create shader programs (untextured)
+	draw_f = GLSLShader("Normal draw fragment shader", glsl_draw_fragshader_src, GL_FRAGMENT_SHADER);
+	shdraw = GLSLProgram(NULL, &draw_f);
+	shdraw.compile();
+	// Create shader programs (textured)
+	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
+	drawtex_f = GLSLShader("Textured draw frag shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
+	shdrawtex = GLSLProgram(&drawtex_v, &drawtex_f);
+	shdrawtex.compile();
+	SDK_CHECK_ERROR_GL();
+}
 
 void display(void){
 	glfwPollEvents();
@@ -135,9 +143,9 @@ void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 bool initGL(){
-	glewExperimental = GL_TRUE;
-	glewInit();
-	glViewport(0, 0, width, height); // viewport for x,y to normalized device coordinates transformation
+	glewExperimental = GL_TRUE; // need this to enforce core profile
+	glewInit(); // this causes enum error
+	glViewport(0, 0, WIDTH, HEIGHT); // viewport for x,y to normalized device coordinates transformation
 	return true;
 }
 
@@ -147,7 +155,7 @@ bool initGLFW(){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	window = glfwCreateWindow(width, height, "The Simplest OpenGL Quad", NULL, NULL);
+	window = glfwCreateWindow(WIDTH, HEIGHT, "The Simplest OpenGL Quad", NULL, NULL);
 	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
@@ -207,6 +215,8 @@ int main(int argc, char *argv[]) {
 	// Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 	// A VAO stores the glBindBuffer calls when the target is GL_ELEMENT_ARRAY_BUFFER. 
 	// This also means it stores its unbind calls so make sure you don't unbind the element array buffer before unbinding your VAO, otherwise it doesn't have an EBO configured.
+
+	//initGLBuffers();
 
 	while (!glfwWindowShouldClose(window))
 	{
