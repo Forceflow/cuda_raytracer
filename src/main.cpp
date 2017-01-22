@@ -166,8 +166,7 @@ void initCUDABuffers()
 	num_texels = WIDTH * WIDTH;
 	num_values = num_texels * 4;
 	size_tex_data = sizeof(GLubyte) * num_values;
-	CHECK_CUDA_ERROR(cudaMalloc((void **)&cuda_dest_resource, size_tex_data));
-	//checkCudaErrors(cudaHostAlloc((void**)&cuda_dest_resource, size_tex_data, ));
+	CHECK_CUDA_ERROR(cudaMalloc((void **)&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
 }
 
 bool initGLFW(){
