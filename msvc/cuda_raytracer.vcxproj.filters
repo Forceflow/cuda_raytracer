@@ -11,7 +11,9 @@
     <ClCompile Include="..\src\util_io.cpp">
       <Filter>util</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\main_basic_gl.cpp" />
+    <ClCompile Include="..\src\main_basic_gl.cpp">
+      <Filter>gl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cuda">
@@ -20,9 +22,14 @@
     <Filter Include="util">
       <UniqueIdentifier>{ac0c5cee-30ae-4463-ac7b-41740c5127d5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="gl">
+      <UniqueIdentifier>{4594f33d-215d-4e46-9de8-9e35adc453d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="shaders">
+      <UniqueIdentifier>{2bdebeb2-ed90-47c5-bf0d-7ad98de7bc05}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\shader_tools.h" />
     <ClInclude Include="..\src\util_io.h">
       <Filter>util</Filter>
     </ClInclude>
@@ -30,11 +37,22 @@
       <Filter>cuda</Filter>
     </ClInclude>
     <ClInclude Include="..\src\shader_tools.h" />
-    <ClInclude Include="..\src\gl_tools.h" />
-    <ClInclude Include="..\src\glfw_tools.h" />
+    <ClInclude Include="..\src\gl_tools.h">
+      <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\glfw_tools.h">
+      <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader_tools.h">
+      <Filter>gl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\fragment_shader.glsl" />
-    <None Include="..\src\vertex_shader.glsl" />
+    <None Include="..\src\fragment_shader.glsl">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="..\src\vertex_shader.glsl">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

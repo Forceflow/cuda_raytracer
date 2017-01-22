@@ -44,6 +44,7 @@ public:
 	}
 
 	void GLSLShader::compile(){
+		printf("(S) Compiling shader: %s \n", shader_name.c_str());
 		shader = glCreateShader(shadertype);
 		glShaderSource(shader, 1, &shader_src, NULL);
 		glCompileShader(shader);
@@ -56,8 +57,9 @@ public:
 			glGetShaderInfoLog(shader, 256, NULL, temp);
 			printf("Shader compilation error:\n%s\n", temp);
 			glDeleteShader(shader);
-			compiled = true;
+			compiled = false;
 		}
+		printf("(S) Shader compiled.\n", shader_name.c_str());
 	}
 };
 
@@ -84,9 +86,15 @@ public:
 		GLSLShader* shaders[2] = {vertex_shader, fragment_shader};
 		for (unsigned int i = 0; i < 2; i++) {
 			if (shaders[i] != NULL) {
-				if (!shaders[i]->compiled) {shaders[i]->compile();} // compile shader if not yet compiled
-				glAttachShader(program, shaders[i]->shader);
-				printf("Attached shader: %s. \n", shaders[i]->shader_name.c_str());
+				if (!shaders[i]->compiled) {shaders[i]->compile();} // try to compile shader if not yet compiled
+				if (shaders[i]->compiled) {
+					glAttachShader(program, shaders[i]->shader);
+					printf("(P) Attached shader %s to program. \n", shaders[i]->shader_name.c_str());
+				}
+				else {
+					printf("(P) Failed to attach shader %s to program. \n", shaders[i]->shader_name.c_str());
+					return;
+				}
 			}
 		}
 		
@@ -100,9 +108,10 @@ public:
 		if (infologLength > 0){
 			char *infoLog = (char *)malloc(infologLength);
 			glGetProgramInfoLog(program, infologLength, (GLsizei *)&charsWritten, infoLog);
-			printf("Program compilation error: %s\n", infoLog);
+			printf("(P) Program compilation error: %s\n", infoLog);
 			free(infoLog);
 		} else {
+			printf("(P) Program compiled. \n");
 			compiled = true;
 		}
 	}

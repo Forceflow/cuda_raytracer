@@ -21,10 +21,18 @@ int HEIGHT = 512;
 // OpenGL
 GLuint shaderProgram;
 GLuint VBO, VAO, EBO;
+GLSLShader draw_f; // GLSL fragment shader
+GLSLShader drawtex_f; // GLSL fragment shader
+GLSLShader drawtex_v; // GLSL fragment shader
+GLSLProgram shdraw; // GLSL program to draw
+GLSLProgram shdrawtex; // GLSLS program for textured draw
 
 // Cuda <-> OpenGl interop resources
-unsigned int *cuda_dest_resource;
-struct cudaGraphicsResource *cuda_tex_result_resource;
+unsigned int*cuda_dest_resource;
+struct cudaGraphicsResource* cuda_tex_result_resource;
+
+extern "C" void
+launch_cudaProcess(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
 
 GLuint fbo_source;
 struct cudaGraphicsResource *cuda_tex_screen_resource;
@@ -35,12 +43,6 @@ unsigned int num_values;
 GLuint tex_screen;      // where we render the image
 GLuint tex_cudaResult;  // where we will copy the CUDA result
 
-GLSLShader draw_f; // GLSL fragment shader
-GLSLShader drawtex_f; // GLSL fragment shader
-GLSLShader drawtex_v; // GLSL fragment shader
-GLSLProgram shdraw; // GLSL program to draw
-GLSLProgram shdrawtex; // GLSLS program for textured draw
-
 const GLenum fbo_targets[] =
 {
 	GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT,
@@ -49,28 +51,40 @@ const GLenum fbo_targets[] =
 
 // Shaders from CUDA2GL sample
 static const char *glsl_drawtex_vertshader_src =
-"void main(void)\n"
+"#version 330 core\n"
+"layout (location = 0) in vec3 position;\n"
+"layout (location = 1) in vec3 color;\n"
+"layout (location = 2) in vec2 texCoord;\n"
+"\n"
+"out vec3 ourColor;\n"
+"out vec2 ourTexCoord;\n"
+"\n"
+"void main()\n"
 "{\n"
-"	gl_Position = gl_Vertex;\n"
-"	gl_TexCoord[0].xy = gl_MultiTexCoord0.xy;\n"
+"	gl_Position = vec4(position, 1.0f);\n"
+"	ourColor = color;\n"
+"	ourTexCoord = texCoord;\n"
 "}\n";
 
 static const char *glsl_drawtex_fragshader_src =
-"#version 130\n"
+"#version 330 core\n"
 "uniform usampler2D texImage;\n"
+"in vec3 ourColor;\n"
+"in vec2 ourTexCoord;\n"
+"out vec4 color;\n"
 "void main()\n"
 "{\n"
-"   vec4 c = texture(texImage, gl_TexCoord[0].xy);\n"
-"	gl_FragColor = c / 255.0;\n"
+"   vec4 c = texture(texImage, ourTexCoord);\n"
+"	color = (c / 255.0);\n"
 "}\n";
 
-static const char *glsl_draw_fragshader_src =
-"#version 130\n"
-"out uvec4 FragColor;\n"
-"void main()\n"
-"{"
-"  FragColor = uvec4(gl_Color.xyz * 255.0, 255.0);\n"
-"}\n";
+//static const char *glsl_draw_fragshader_src =
+//"#version 130\n"
+//"out uvec4 FragColor;\n"
+//"void main()\n"
+//"{"
+//"  FragColor = uvec4(gl_Color.xyz * 255.0, 255.0);\n"
+//"}\n";
 
 // QUAD GEOMETRY
 GLfloat vertices[] = {
@@ -107,13 +121,9 @@ void initGLBuffers()
 {
 	// create texture that will receive the result of cuda
 	createTextureDst(&tex_cudaResult, WIDTH, HEIGHT);
-	// Create shader programs (untextured)
-	draw_f = GLSLShader("Normal draw fragment shader", glsl_draw_fragshader_src, GL_FRAGMENT_SHADER);
-	shdraw = GLSLProgram(NULL, &draw_f);
-	shdraw.compile();
-	// Create shader programs (textured)
+	// create shader program
 	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
-	drawtex_f = GLSLShader("Textured draw frag shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
+	drawtex_f = GLSLShader("Textured draw fragment shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
 	shdrawtex = GLSLProgram(&drawtex_v, &drawtex_f);
 	shdrawtex.compile();
 	SDK_CHECK_ERROR_GL();
@@ -146,7 +156,18 @@ bool initGL(){
 	glewExperimental = GL_TRUE; // need this to enforce core profile
 	glewInit(); // this causes enum error
 	glViewport(0, 0, WIDTH, HEIGHT); // viewport for x,y to normalized device coordinates transformation
+	SDK_CHECK_ERROR_GL();
 	return true;
+}
+
+void initCUDABuffers()
+{
+	// set up vertex data parameter
+	num_texels = WIDTH * WIDTH;
+	num_values = num_texels * 4;
+	size_tex_data = sizeof(GLubyte) * num_values;
+	CHECK_CUDA_ERROR(cudaMalloc((void **)&cuda_dest_resource, size_tex_data));
+	//checkCudaErrors(cudaHostAlloc((void**)&cuda_dest_resource, size_tex_data, ));
 }
 
 bool initGLFW(){
@@ -155,12 +176,33 @@ bool initGLFW(){
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	window = glfwCreateWindow(WIDTH, HEIGHT, "The Simplest OpenGL Quad", NULL, NULL);
+	window = glfwCreateWindow(WIDTH, WIDTH, "The Simplest OpenGL Quad", NULL, NULL);
 	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 	glfwSetKeyCallback(window, keyboardfunc);
 	return true;
+}
+
+void generateCUDAImage()
+{
+	// run the Cuda kernel
+	unsigned int* out_data = cuda_dest_resource;
+	// calculate grid size
+	dim3 block(16, 16, 1);
+	dim3 grid(WIDTH / block.x, HEIGHT / block.y, 1); // 2D grid, every thread will compute a pixel
+	launch_cudaProcess(grid, block, 0, out_data, WIDTH); // launch with 0 additional shared memory allocated
+	// We want to copy cuda_dest_resource data to the texture
+	// map buffer objects to get CUDA device pointers
+	cudaArray *texture_ptr;
+	CHECK_CUDA_ERROR(cudaGraphicsMapResources(1, &cuda_tex_result_resource, 0));
+	CHECK_CUDA_ERROR(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_result_resource, 0, 0));
+
+	int num_texels = WIDTH * HEIGHT;
+	int num_values = num_texels * 4;
+	int size_tex_data = sizeof(GLubyte) * num_values;
+	CHECK_CUDA_ERROR(cudaMemcpyToArray(texture_ptr, 0, 0, cuda_dest_resource, size_tex_data, cudaMemcpyDeviceToDevice));
+	CHECK_CUDA_ERROR(cudaGraphicsUnmapResources(1, &cuda_tex_result_resource, 0));
 }
 
 int main(int argc, char *argv[]) {
@@ -175,6 +217,8 @@ int main(int argc, char *argv[]) {
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
+
+	initGLBuffers();
 
 	std::string vertexsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
 	GLSLShader vertex(std::string("Vertex shader"), vertexsrc.c_str(), GL_VERTEX_SHADER);

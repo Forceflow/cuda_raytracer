@@ -38,10 +38,12 @@ sdkCheckErrorGL(const char *file, const int line)
 	return ret_val;
 }
 
-#define SDK_CHECK_ERROR_GL()                                              \
-    if( false == sdkCheckErrorGL( __FILE__, __LINE__)) {                  \
-        exit(EXIT_FAILURE);                                               \
-		    }
+#define SDK_CHECK_ERROR_GL() sdkCheckErrorGL( __FILE__, __LINE__)
+
+//#define SDK_CHECK_ERROR_GL()                                              \
+//    if( false == sdkCheckErrorGL( __FILE__, __LINE__)) {                  \
+//        exit(EXIT_FAILURE);                                               \
+//		    }
 
 void printGlewInfo(){
 	printf("GLEW: Glew version: %s \n", glewGetString(GLEW_VERSION));
