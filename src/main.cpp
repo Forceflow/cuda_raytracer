@@ -15,8 +15,8 @@ using namespace std;
 
 // GLFW
 GLFWwindow* window;
-int WIDTH = 512;
-int HEIGHT = 512;
+int WIDTH = 256;
+int HEIGHT = 256;
 
 // OpenGL
 GLuint shaderProgram;
@@ -36,7 +36,7 @@ launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int 
 
 GLuint fbo_source;
 struct cudaGraphicsResource *cuda_tex_screen_resource;
-unsigned int size_tex_data;
+size_t size_tex_data;
 unsigned int num_texels;
 unsigned int num_values;
 // (offscreen) render target fbo variables
@@ -167,7 +167,7 @@ void initCUDABuffers()
 	num_texels = WIDTH * WIDTH;
 	num_values = num_texels * 4;
 	size_tex_data = sizeof(GLubyte) * num_values;
-	CHECK_CUDA_ERROR(cudaMalloc((void **)&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
+	CHECK_CUDA_ERROR(cudaMalloc(&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
 }
 
 bool initGLFW(){
@@ -187,11 +187,10 @@ bool initGLFW(){
 void generateCUDAImage()
 {
 	// run the Cuda kernel
-	unsigned int* out_data = cuda_dest_resource;
 	// calculate grid size
 	dim3 block(16, 16, 1);
 	dim3 grid(WIDTH / block.x, HEIGHT / block.y, 1); // 2D grid, every thread will compute a pixel
-	launch_cudaRender(grid, block, 0, out_data, WIDTH); // launch with 0 additional shared memory allocated
+	launch_cudaRender(grid, block, 0, cuda_dest_resource, WIDTH); // launch with 0 additional shared memory allocated
 	// We want to copy cuda_dest_resource data to the texture
 	// map buffer objects to get CUDA device pointers
 	cudaArray *texture_ptr;
@@ -218,7 +217,12 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
+	checkCudaRequirements();
+
+	initCUDABuffers();
 	initGLBuffers();
+	
+	generateCUDAImage();
 
 	std::string vertexsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
 	GLSLShader vertex(std::string("Vertex shader"), vertexsrc.c_str(), GL_VERTEX_SHADER);
