@@ -28,11 +28,11 @@ GLSLProgram shdraw; // GLSL program to draw
 GLSLProgram shdrawtex; // GLSLS program for textured draw
 
 // Cuda <-> OpenGl interop resources
-unsigned int*cuda_dest_resource;
+unsigned int* cuda_dest_resource;
 struct cudaGraphicsResource* cuda_tex_result_resource;
 
 extern "C" void
-launch_cudaProcess(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
+launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
 
 GLuint fbo_source;
 struct cudaGraphicsResource *cuda_tex_screen_resource;
@@ -41,7 +41,7 @@ unsigned int num_texels;
 unsigned int num_values;
 // (offscreen) render target fbo variables
 GLuint tex_screen;      // where we render the image
-GLuint tex_cudaResult;  // where we will copy the CUDA result
+GLuint tex_cudaResult;  // OpenGL Texture for cuda result
 
 const GLenum fbo_targets[] =
 {
@@ -100,20 +100,21 @@ GLuint indices[] = {  // Note that we start from 0!
 	1, 2, 3   // Second Triangle
 };
 
+// Create OpenGL texture and bind it to CUDA
 void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int size_y)
 {
-	// create a texture
+	// create an OpenGL texture
 	glGenTextures(1, tex_cudaResult); // generate 1 texture
 	glBindTexture(GL_TEXTURE_2D, *tex_cudaResult); // set it as current target
-	// set basic parameters
+	// set basic texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // clamp s coordinate
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // clamp t coordinate
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
+	// Specify 2D texture
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, size_x, size_y, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, NULL);
 	SDK_CHECK_ERROR_GL();
-	// register this texture with CUDA
+	// Register this texture with CUDA
 	CHECK_CUDA_ERROR(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
 
@@ -190,7 +191,7 @@ void generateCUDAImage()
 	// calculate grid size
 	dim3 block(16, 16, 1);
 	dim3 grid(WIDTH / block.x, HEIGHT / block.y, 1); // 2D grid, every thread will compute a pixel
-	launch_cudaProcess(grid, block, 0, out_data, WIDTH); // launch with 0 additional shared memory allocated
+	launch_cudaRender(grid, block, 0, out_data, WIDTH); // launch with 0 additional shared memory allocated
 	// We want to copy cuda_dest_resource data to the texture
 	// map buffer objects to get CUDA device pointers
 	cudaArray *texture_ptr;
