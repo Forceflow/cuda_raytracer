@@ -115,7 +115,7 @@ void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, size_x, size_y, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, NULL);
 	SDK_CHECK_ERROR_GL();
 	// Register this texture with CUDA
-	CHECK_CUDA_ERROR(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+	HANDLE_CUDA_ERROR(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
 
 void initGLBuffers()
@@ -167,7 +167,7 @@ void initCUDABuffers()
 	num_texels = WIDTH * WIDTH;
 	num_values = num_texels * 4;
 	size_tex_data = sizeof(GLubyte) * num_values;
-	CHECK_CUDA_ERROR(cudaMalloc(&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
+	HANDLE_CUDA_ERROR(cudaMalloc(&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
 }
 
 bool initGLFW(){
@@ -194,8 +194,8 @@ void generateCUDAImage()
 	// We want to copy cuda_dest_resource data to the texture
 	// map buffer objects to get CUDA device pointers
 	cudaArray *texture_ptr;
-	CHECK_CUDA_ERROR(cudaGraphicsMapResources(1, &cuda_tex_result_resource, 0));
-	CHECK_CUDA_ERROR(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_result_resource, 0, 0));
+	HANDLE_CUDA_ERROR(cudaGraphicsMapResources(1, &cuda_tex_result_resource, 0));
+	HANDLE_CUDA_ERROR(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_result_resource, 0, 0));
 
 	int num_texels = WIDTH * HEIGHT;
 	int num_values = num_texels * 4;
