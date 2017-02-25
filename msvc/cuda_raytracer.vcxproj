@@ -14,7 +14,6 @@
     <CudaCompile Include="..\src\kernel.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\src\cuda_error_check.cpp" />
     <ClCompile Include="..\src\main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -25,6 +24,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\cuda_error_check.h" />
+    <ClInclude Include="..\src\cuda_util.h" />
     <ClInclude Include="..\src\glfw_tools.h" />
     <ClInclude Include="..\src\gl_tools.h" />
     <ClInclude Include="..\src\shader_tools.h" />

@@ -5,9 +5,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp" />
-    <ClCompile Include="..\src\cuda_error_check.cpp">
-      <Filter>cuda</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\util_io.cpp">
       <Filter>util</Filter>
     </ClCompile>
@@ -45,6 +42,9 @@
     </ClInclude>
     <ClInclude Include="..\src\shader_tools.h">
       <Filter>gl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cuda_util.h">
+      <Filter>cuda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
