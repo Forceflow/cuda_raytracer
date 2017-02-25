@@ -106,9 +106,7 @@ inline int gpuGetMaxGflopsDeviceId()
 			{
 				sm_per_multiproc = _ConvertSMVer2Cores(deviceProp.major, deviceProp.minor);
 			}
-
 			unsigned long long compute_perf = (unsigned long long) deviceProp.multiProcessorCount * sm_per_multiproc * deviceProp.clockRate;
-
 			if (compute_perf > max_compute_perf)
 			{
 				// If we find GPU with SM major > 2, search only these
@@ -128,10 +126,8 @@ inline int gpuGetMaxGflopsDeviceId()
 				}
 			}
 		}
-
 		++current_device;
 	}
-
 	return max_perf_device;
 }
 
@@ -144,10 +140,11 @@ int checkCudaRequirements() {
 		fprintf(stderr, "No cuda devices found - we need at least one. \n");
 		return 0;
 	}
-	// We'll be using first device by default
+	// Get best device
+	int best = gpuGetMaxGflopsDeviceId();
 	cudaDeviceProp properties;
-	HANDLE_CUDA_ERROR(cudaSetDevice(0));
-	HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&properties, 0));
+	HANDLE_CUDA_ERROR(cudaSetDevice(best));
+	HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&properties, best));
 	fprintf(stdout, "Device %d: \"%s\".\n", 0, properties.name);
 	fprintf(stdout, "Available global device memory: %llu bytes. \n", properties.totalGlobalMem);
 	if (properties.major < 2) {
