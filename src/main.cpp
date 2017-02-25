@@ -2,9 +2,10 @@
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
 // CUDA
-#include "cuda_error_check.h"
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
+#include "cuda_error_check.h"
+#include "cuda_util.h"
 // C++ libs
 #include <string>
 #include "shader_tools.h"
@@ -100,12 +101,12 @@ GLuint indices[] = {  // Note that we start from 0!
 	1, 2, 3   // Second Triangle
 };
 
-// Create OpenGL texture and bind it to CUDA
-void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int size_y)
+// Create 2D OpenGL texture in gl_tex and bind it to CUDA in cuda_tex
+void createGLTextureForCUDA(GLuint* gl_tex, cudaGraphicsResource** cuda_tex, unsigned int size_x, unsigned int size_y)
 {
 	// create an OpenGL texture
-	glGenTextures(1, tex_cudaResult); // generate 1 texture
-	glBindTexture(GL_TEXTURE_2D, *tex_cudaResult); // set it as current target
+	glGenTextures(1, gl_tex); // generate 1 texture
+	glBindTexture(GL_TEXTURE_2D, *gl_tex); // set it as current target
 	// set basic texture parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // clamp s coordinate
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // clamp t coordinate
@@ -115,13 +116,16 @@ void createTextureDst(GLuint* tex_cudaResult, unsigned int size_x, unsigned int 
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, size_x, size_y, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, NULL);
 	SDK_CHECK_ERROR_GL();
 	// Register this texture with CUDA
-	HANDLE_CUDA_ERROR(cudaGraphicsGLRegisterImage(&cuda_tex_result_resource, *tex_cudaResult, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+	// CUDA POINTER: cuda_tex_result_resource
+	// GL POINTER: tex_cudaresult
+    // cudaGraphicsMapFlagsWriteDiscard: we're gonna write once and overwrite everything next frame
+	HANDLE_CUDA_ERROR(cudaGraphicsGLRegisterImage(cuda_tex, *gl_tex, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
 
 void initGLBuffers()
 {
 	// create texture that will receive the result of cuda
-	createTextureDst(&tex_cudaResult, WIDTH, HEIGHT);
+	createGLTextureForCUDA(&tex_cudaResult, &cuda_tex_result_resource, WIDTH, HEIGHT);
 	// create shader program
 	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
 	drawtex_f = GLSLShader("Textured draw fragment shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
@@ -163,7 +167,7 @@ bool initGL(){
 
 void initCUDABuffers()
 {
-	// set up vertex data parameter
+	// set up vertex data parameters
 	num_texels = WIDTH * WIDTH;
 	num_values = num_texels * 4;
 	size_tex_data = sizeof(GLubyte) * num_values;
