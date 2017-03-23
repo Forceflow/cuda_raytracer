@@ -44,7 +44,6 @@ public:
 	}
 
 	void GLSLShader::compile(){
-		printf("(S) Compiling shader: %s \n", shader_name.c_str());
 		shader = glCreateShader(shadertype);
 		glShaderSource(shader, 1, &shader_src, NULL);
 		glCompileShader(shader);
@@ -55,11 +54,13 @@ public:
 		if (!compiled){
 			char temp[256] = "";
 			glGetShaderInfoLog(shader, 256, NULL, temp);
-			printf("Shader compilation error:\n%s\n", temp);
+			printf("(S) Shader compilation error:\n%s\n", temp);
 			glDeleteShader(shader);
 			compiled = false;
 		}
-		printf("(S) Shader compiled.\n", shader_name.c_str());
+		else {
+			printf("(S) Compiled shader: %s (%i) \n", shader_name.c_str(), shader);
+		}
 	}
 };
 
@@ -89,16 +90,17 @@ public:
 				if (!shaders[i]->compiled) {shaders[i]->compile();} // try to compile shader if not yet compiled
 				if (shaders[i]->compiled) {
 					glAttachShader(program, shaders[i]->shader);
-					printf("(P) Attached shader %s to program. \n", shaders[i]->shader_name.c_str());
+					printf("(P) Attached shader %s (%i) to program. \n", shaders[i]->shader_name.c_str(), shaders[i]->shader);
 				}
 				else {
-					printf("(P) Failed to attach shader %s to program. \n", shaders[i]->shader_name.c_str());
+					printf("(P) Failed to attach shader %s (%i) to program. \n", shaders[i]->shader_name.c_str(), shaders[i]->shader);
 					return;
 				}
 			}
 		}
 		
 		glLinkProgram(program);
+		printf("(P) Linked program %i \n", program);
 
 		int infologLength = 0;
 		int charsWritten = 0;
@@ -111,7 +113,6 @@ public:
 			printf("(P) Program compilation error: %s\n", infoLog);
 			free(infoLog);
 		} else {
-			printf("(P) Program compiled. \n");
 			compiled = true;
 		}
 	}
