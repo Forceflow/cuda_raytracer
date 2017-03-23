@@ -132,27 +132,22 @@ inline int gpuGetMaxGflopsDeviceId()
 }
 
 // Check if CUDA requirements are met
-int checkCudaRequirements() {
+int setBestCUDADevice(int compute_min = 2) {
 	// Is there a cuda device?
 	int device_count = 0;
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&device_count));
 	if (device_count < 1) {
 		fprintf(stderr, "No cuda devices found - we need at least one. \n");
-		return 0;
+		exit;
 	}
-	// Get best device
+	// Get best device and set it
 	int best = gpuGetMaxGflopsDeviceId();
+	fprintf(stdout, "CUDA: Found %i CUDA devices, and the best one is %i \n", device_count, best);
 	cudaDeviceProp properties;
 	HANDLE_CUDA_ERROR(cudaSetDevice(best));
 	HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&properties, best));
-	fprintf(stdout, "Device %d: \"%s\".\n", 0, properties.name);
-	fprintf(stdout, "Available global device memory: %llu bytes. \n", properties.totalGlobalMem);
-	if (properties.major < 2) {
-		fprintf(stderr, "Your cuda device has compute capability %i.%i. We need at least 2.0 for atomic operations. \n", properties.major, properties.minor);
-		return 0;
-	}
-	else {
-		fprintf(stdout, "Compute capability: %i.%i.\n", properties.major, properties.minor);
-	}
+	fprintf(stdout, "CUDA: Device %d: \"%s\".\n", 0, properties.name);
+	fprintf(stdout, "CUDA: Available global device memory: %llu bytes. \n", properties.totalGlobalMem);
+	fprintf(stdout, "CUDA: Compute capability: %i.%i.\n", properties.major, properties.minor);
 	return 1;
 }

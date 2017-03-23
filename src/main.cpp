@@ -221,7 +221,7 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	checkCudaRequirements();
+	setBestCUDADevice();
 
 	initCUDABuffers();
 	initGLBuffers();
