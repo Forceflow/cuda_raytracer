@@ -66,7 +66,7 @@ inline int gpuGetMaxGflopsDeviceId()
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&device_count));
 
 	if (device_count == 0){
-		fprintf(stderr, "gpuGetMaxGflopsDeviceId() CUDA error: no devices supporting CUDA.\n");
+		fprintf(stderr, "CUDA: gpuGetMaxGflopsDeviceId() error: no devices supporting CUDA.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -85,7 +85,7 @@ inline int gpuGetMaxGflopsDeviceId()
 	}
 
 	if (devices_prohibited == device_count){
-		fprintf(stderr, "gpuGetMaxGflopsDeviceId() CUDA error: all devices have compute mode prohibited.\n");
+		fprintf(stderr, "CUDA: gpuGetMaxGflopsDeviceId() error: all devices have compute mode prohibited.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -137,7 +137,7 @@ int setBestCUDADevice(int compute_min = 2) {
 	int device_count = 0;
 	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&device_count));
 	if (device_count < 1) {
-		fprintf(stderr, "No cuda devices found - we need at least one. \n");
+		fprintf(stderr, "CUDA: No CUDA devices found. We need at least one. \n");
 		exit;
 	}
 	// Get best device and set it
@@ -147,7 +147,7 @@ int setBestCUDADevice(int compute_min = 2) {
 	HANDLE_CUDA_ERROR(cudaSetDevice(best));
 	HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&properties, best));
 	fprintf(stdout, "CUDA: Device %d: \"%s\".\n", 0, properties.name);
-	fprintf(stdout, "CUDA: Available global device memory: %llu bytes. \n", properties.totalGlobalMem);
+	fprintf(stdout, "CUDA: Available global device memory: %llu bytes \n", properties.totalGlobalMem);
 	fprintf(stdout, "CUDA: Compute capability: %i.%i.\n", properties.major, properties.minor);
 	return 1;
 }
