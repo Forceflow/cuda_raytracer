@@ -63,7 +63,7 @@ inline int gpuGetMaxGflopsDeviceId()
 	cudaDeviceProp deviceProp;
 	cudaGetDeviceCount(&device_count);
 
-	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&device_count));
+	CATCH_CUDA_ERROR(cudaGetDeviceCount(&device_count));
 
 	if (device_count == 0){
 		fprintf(stderr, "CUDA: gpuGetMaxGflopsDeviceId() error: no devices supporting CUDA.\n");
@@ -72,7 +72,7 @@ inline int gpuGetMaxGflopsDeviceId()
 
 	// Find the best major SM Architecture GPU device
 	while (current_device < device_count){
-		HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&deviceProp, current_device));
+		CATCH_CUDA_ERROR(cudaGetDeviceProperties(&deviceProp, current_device));
 		// If this GPU is not running on Compute Mode prohibited, then we can add it to the list
 		if (deviceProp.computeMode != cudaComputeModeProhibited){
 			if (deviceProp.major > 0 && deviceProp.major < 9999){
@@ -93,7 +93,7 @@ inline int gpuGetMaxGflopsDeviceId()
 	current_device = 0;
 
 	while (current_device < device_count){
-		HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&deviceProp, current_device));
+		CATCH_CUDA_ERROR(cudaGetDeviceProperties(&deviceProp, current_device));
 
 		// If this GPU is not running on Compute Mode prohibited, then we can add it to the list
 		if (deviceProp.computeMode != cudaComputeModeProhibited)
@@ -135,7 +135,7 @@ inline int gpuGetMaxGflopsDeviceId()
 int setBestCUDADevice(int compute_min = 2) {
 	// Is there a cuda device?
 	int device_count = 0;
-	HANDLE_CUDA_ERROR(cudaGetDeviceCount(&device_count));
+	CATCH_CUDA_ERROR(cudaGetDeviceCount(&device_count));
 	if (device_count < 1) {
 		fprintf(stderr, "CUDA: No CUDA devices found. We need at least one. \n");
 		exit;
@@ -144,8 +144,8 @@ int setBestCUDADevice(int compute_min = 2) {
 	int best = gpuGetMaxGflopsDeviceId();
 	fprintf(stdout, "CUDA: Found %i CUDA devices, and the best one is %i \n", device_count, best);
 	cudaDeviceProp properties;
-	HANDLE_CUDA_ERROR(cudaSetDevice(best));
-	HANDLE_CUDA_ERROR(cudaGetDeviceProperties(&properties, best));
+	CATCH_CUDA_ERROR(cudaSetDevice(best));
+	CATCH_CUDA_ERROR(cudaGetDeviceProperties(&properties, best));
 	fprintf(stdout, "CUDA: Device %d: \"%s\".\n", 0, properties.name);
 	fprintf(stdout, "CUDA: Available global device memory: %llu bytes \n", properties.totalGlobalMem);
 	fprintf(stdout, "CUDA: Compute capability: %i.%i.\n", properties.major, properties.minor);

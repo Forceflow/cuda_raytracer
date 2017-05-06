@@ -10,7 +10,7 @@
 
 #define CUDA_ERROR_CHECKING_ENABLED // Disable CUDA error checking here if you're feeling DANGEROUS 
 
-#define HANDLE_CUDA_ERROR( err ) __HANDLE_ERROR( err, __FILE__, __LINE__ )
+#define CATCH_CUDA_ERROR( err ) __HANDLE_ERROR( err, __FILE__, __LINE__ )
 #define CHECK_CUDA_ERROR()    __CHECK_ERROR( __FILE__, __LINE__ )
 
 inline void __HANDLE_ERROR(cudaError err, const char *file, const int line){
