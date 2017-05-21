@@ -79,14 +79,6 @@ static const char *glsl_drawtex_fragshader_src =
 "	color = (c / 255.0);\n"
 "}\n";
 
-//static const char *glsl_draw_fragshader_src =
-//"#version 130\n"
-//"out uvec4 FragColor;\n"
-//"void main()\n"
-//"{"
-//"  FragColor = uvec4(gl_Color.xyz * 255.0, 255.0);\n"
-//"}\n";
-
 // QUAD GEOMETRY
 GLfloat vertices[] = {
 	// Positions          // Colors           // Texture Coords
@@ -240,17 +232,6 @@ int main(int argc, char *argv[]) {
 	
 	generateCUDAImage();
 
-	/*std::string vertexsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
-	GLSLShader vertex(std::string("Vertex shader"), vertexsrc.c_str(), GL_VERTEX_SHADER);
-	vertex.compile();
-	std::string fragmentsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl");
-	GLSLShader fragment(std::string("Fragment shader"), fragmentsrc.c_str(), GL_FRAGMENT_SHADER);
-	fragment.compile();
-	GLSLProgram program(&vertex, &fragment);
-	program.compile();*/
-
-	//shaderProgram = program.program;
-
 	// Buffer setup
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
 	glBindVertexArray(VAO); // all next calls wil use this VAO (descriptor for VBO)
@@ -279,8 +260,6 @@ int main(int argc, char *argv[]) {
 	// Unbind VAO (it's always a good thing to unbind any buffer/array to prevent strange bugs), remember: do NOT unbind the EBO, keep it bound to this VAO
 	// A VAO stores the glBindBuffer calls when the target is GL_ELEMENT_ARRAY_BUFFER. 
 	// This also means it stores its unbind calls so make sure you don't unbind the element array buffer before unbinding your VAO, otherwise it doesn't have an EBO configured.
-
-	//initGLBuffers();
 
 	while (!glfwWindowShouldClose(window))
 	{
