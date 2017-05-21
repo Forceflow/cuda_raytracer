@@ -140,9 +140,21 @@ void display(void){
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glBindTexture(GL_TEXTURE_2D, tex_cudaResult);
+	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
-	glUseProgram(shaderProgram);
+#ifndef USE_TEXSUBIMAGE2D
+	glUseProgram(shdrawtex.program);
+	GLint id = glGetUniformLocation(shdrawtex.program, "texImage");
+	glUniform1i(id, 0); // texture unit 0 to "texImage"
+	SDK_CHECK_ERROR_GL();
+#endif
+
 	glBindVertexArray(VAO); // binding VAO automatically binds EBO
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0); // unbind VAO
@@ -158,7 +170,7 @@ void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 bool initGL(){
-	glewExperimental = GL_TRUE; // need this to enforce core profile
+	//glewExperimental = GL_TRUE; // need this to enforce core profile
 	glewInit(); // this causes enum error
 	glViewport(0, 0, WIDTH, HEIGHT); // viewport for x,y to normalized device coordinates transformation
 	SDK_CHECK_ERROR_GL();
@@ -176,10 +188,10 @@ void initCUDABuffers()
 
 bool initGLFW(){
 	if (!glfwInit()) exit(EXIT_FAILURE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	window = glfwCreateWindow(WIDTH, WIDTH, "The Simplest OpenGL Quad", NULL, NULL);
 	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
 	glfwMakeContextCurrent(window);
@@ -228,16 +240,16 @@ int main(int argc, char *argv[]) {
 	
 	generateCUDAImage();
 
-	std::string vertexsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
+	/*std::string vertexsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/vertex_shader.glsl");
 	GLSLShader vertex(std::string("Vertex shader"), vertexsrc.c_str(), GL_VERTEX_SHADER);
 	vertex.compile();
 	std::string fragmentsrc = loadFileToString("D:/jeroenb/Implementation/cuda_raytracer/src/fragment_shader.glsl");
 	GLSLShader fragment(std::string("Fragment shader"), fragmentsrc.c_str(), GL_FRAGMENT_SHADER);
 	fragment.compile();
 	GLSLProgram program(&vertex, &fragment);
-	program.compile();
+	program.compile();*/
 
-	shaderProgram = program.program;
+	//shaderProgram = program.program;
 
 	// Buffer setup
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
