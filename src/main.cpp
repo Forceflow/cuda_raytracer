@@ -11,6 +11,8 @@
 #include "shader_tools.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
+// SOIL Libs
+#include <src\SOIL.h>
 
 using namespace std;
 
