@@ -180,6 +180,7 @@ void initCUDABuffers()
 
 bool initGLFW(){
 	if (!glfwInit()) exit(EXIT_FAILURE);
+	// These hints switch the OpenGL profile to core
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
