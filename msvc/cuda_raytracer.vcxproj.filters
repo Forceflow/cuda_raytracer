@@ -54,10 +54,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\src\fragment_shader.glsl">
+    <None Include="..\src\shaders\fragment_shader.glsl">
       <Filter>shaders</Filter>
     </None>
-    <None Include="..\src\vertex_shader.glsl">
+    <None Include="..\src\shaders\vertex_shader.glsl">
       <Filter>shaders</Filter>
     </None>
   </ItemGroup>
