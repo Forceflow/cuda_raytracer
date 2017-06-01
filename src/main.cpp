@@ -171,7 +171,7 @@ void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 bool initGL(){
-	//glewExperimental = GL_TRUE; // need this to enforce core profile
+	glewExperimental = GL_TRUE; // need this to enforce core profile
 	glewInit(); // this causes enum error
 	glViewport(0, 0, WIDTH, HEIGHT); // viewport for x,y to normalized device coordinates transformation
 	SDK_CHECK_ERROR_GL();
@@ -190,10 +190,10 @@ void initCUDABuffers()
 bool initGLFW(){
 	if (!glfwInit()) exit(EXIT_FAILURE);
 	// These hints switch the OpenGL profile to core
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	//glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	//glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	window = glfwCreateWindow(WIDTH, WIDTH, "The Simplest OpenGL Quad", NULL, NULL);
 	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
 	glfwMakeContextCurrent(window);
