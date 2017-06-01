@@ -27,6 +27,7 @@
     <ClInclude Include="..\src\cuda_util.h" />
     <ClInclude Include="..\src\glfw_tools.h" />
     <ClInclude Include="..\src\gl_tools.h" />
+    <ClInclude Include="..\src\libs\stb_image.h" />
     <ClInclude Include="..\src\shader_tools.h" />
     <ClInclude Include="..\src\util_io.h" />
   </ItemGroup>

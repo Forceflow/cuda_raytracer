@@ -11,8 +11,9 @@
 #include "shader_tools.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
-// SOIL Libs
-#include <src\SOIL.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "libs/stb_image.h"
+#include <filesystem>
 
 using namespace std;
 
@@ -46,6 +47,9 @@ unsigned int num_values;
 GLuint tex_screen;      // where we render the image
 GLuint tex_cudaResult;  // OpenGL Texture for cuda result
 
+// Regular OpenGL Texture
+unsigned int texture;
+
 const GLenum fbo_targets[] =
 {
 	GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT,
@@ -71,14 +75,13 @@ static const char *glsl_drawtex_vertshader_src =
 
 static const char *glsl_drawtex_fragshader_src =
 "#version 330 core\n"
-"uniform usampler2D texImage;\n"
+"uniform sampler2D tex0;\n"
 "in vec3 ourColor;\n"
 "in vec2 ourTexCoord;\n"
 "out vec4 color;\n"
 "void main()\n"
 "{\n"
-"   vec4 c = texture(texImage, ourTexCoord);\n"
-"	color = (c / 255.0);\n"
+"   	color = texture(tex0, ourTexCoord); \n"
 "}\n";
 
 // QUAD GEOMETRY
@@ -124,7 +127,7 @@ void initGLBuffers()
 	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
 	drawtex_f = GLSLShader("Textured draw fragment shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
 	shdrawtex = GLSLProgram(&drawtex_v, &drawtex_f);
-	shdrawtex.compile();
+	shdrawtex.compile();	
 	SDK_CHECK_ERROR_GL();
 }
 
@@ -134,18 +137,22 @@ void display(void){
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	glBindTexture(GL_TEXTURE_2D, tex_cudaResult);
+	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_LIGHTING);
-	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	
+	//glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_LIGHTING);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
 #ifndef USE_TEXSUBIMAGE2D
 	glUseProgram(shdrawtex.program);
-	GLint id = glGetUniformLocation(shdrawtex.program, "texImage");
-	glUniform1i(id, 0); // texture unit 0 to "texImage"
+	GLint texLoc;
+	texLoc = glGetUniformLocation(shdrawtex.program, "tex0");
+	glUniform1i(texLoc, 0);
+	//GLint id = glGetUniformLocation(shdrawtex.program, "texImage");
 	SDK_CHECK_ERROR_GL();
 #endif
 
@@ -228,12 +235,35 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	setBestCUDADevice();
+	//setBestCUDADevice();
 
-	initCUDABuffers();
+	//initCUDABuffers();
 	initGLBuffers();
 	
-	generateCUDAImage();
+	//generateCUDAImage();
+
+	// Load simple OpenGL texture
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    // set the texture wrapping parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // set texture filtering parameters
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // load image, create texture and generate mipmaps
+    int width, height, nrChannels;
+    unsigned char *data = stbi_load(std::string("D:/container.jpg").c_str(), &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+		printf("notex");
+    }
+    stbi_image_free(data);
 
 	// Buffer setup
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).

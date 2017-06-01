@@ -25,6 +25,9 @@
     <Filter Include="shaders">
       <UniqueIdentifier>{2bdebeb2-ed90-47c5-bf0d-7ad98de7bc05}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{407b3c17-4c98-4787-99ae-826368091690}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\util_io.h">
@@ -45,6 +48,9 @@
     </ClInclude>
     <ClInclude Include="..\src\cuda_util.h">
       <Filter>cuda</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\stb_image.h">
+      <Filter>libs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
