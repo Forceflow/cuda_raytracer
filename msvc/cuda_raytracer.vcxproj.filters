@@ -11,6 +11,9 @@
     <ClCompile Include="..\src\main_basic_gl.cpp">
       <Filter>gl</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\main_textured_gl.cpp">
+      <Filter>gl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cuda">
