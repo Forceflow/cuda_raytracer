@@ -32,9 +32,8 @@ unsigned int num_texels;
 unsigned int num_values;
 // (offscreen) render target fbo variables
 GLuint tex_screen;      // where we render the image
-GLuint tex_cudaResult;  // OpenGL Texture for cuda result
 
-						// Regular OpenGL Texture
+// Regular OpenGL Texture
 unsigned int texture;
 
 const GLenum fbo_targets[] =
@@ -87,6 +86,8 @@ GLuint indices[] = {  // Note that we start from 0!
 
 void initGLBuffers()
 {
+	// create texture that will receive the result of cuda
+	createGLTextureForCUDA(&tex_cudaResult, &cuda_tex_result_resource, WIDTH, HEIGHT);
 	// create shader program
 	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
 	drawtex_f = GLSLShader("Textured draw fragment shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
@@ -102,7 +103,7 @@ void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
+	// glEnable(GL_TEXTURE_2D); (not needed for core profile)
 	glBindTexture(GL_TEXTURE_2D, texture);
 
 #ifndef USE_TEXSUBIMAGE2D
@@ -110,15 +111,13 @@ void display(void) {
 	GLint texLoc;
 	texLoc = glGetUniformLocation(shdrawtex.program, "tex0");
 	glUniform1i(texLoc, 0);
-	//GLint id = glGetUniformLocation(shdrawtex.program, "texImage");
-	SDK_CHECK_ERROR_GL();
 #endif
 
 	glBindVertexArray(VAO); // binding VAO automatically binds EBO
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0); // unbind VAO
 
-						  // Swap the screen buffers
+	// Swap the screen buffers
 	glfwSwapBuffers(window);
 }
 
@@ -130,7 +129,12 @@ void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mod
 
 bool initGL() {
 	glewExperimental = GL_TRUE; // need this to enforce core profile
-	glewInit(); // this causes enum error
+	GLenum err = glewInit();
+	glGetError();
+	if (err != GLEW_OK) {// Problem: glewInit failed, something is seriously wrong.
+		printf("glewInit failed: %s /n", glewGetErrorString(err));
+		exit(1);
+	}
 	glViewport(0, 0, WIDTH, HEIGHT); // viewport for x,y to normalized device coordinates transformation
 	SDK_CHECK_ERROR_GL();
 	return true;
