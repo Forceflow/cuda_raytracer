@@ -34,21 +34,21 @@ GLSLProgram shdrawtex; // GLSLS program for textured draw
 // Cuda <-> OpenGl interop resources
 unsigned int* cuda_dest_resource;
 struct cudaGraphicsResource* cuda_tex_result_resource;
-
 extern "C" void
 launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
+GLuint tex_screen;      // where we render the image
+GLuint tex_cudaResult;  // OpenGL Texture for cuda result
 
+// CUDA
 GLuint fbo_source;
 struct cudaGraphicsResource *cuda_tex_screen_resource;
 size_t size_tex_data;
 unsigned int num_texels;
 unsigned int num_values;
-// (offscreen) render target fbo variables
-GLuint tex_screen;      // where we render the image
-GLuint tex_cudaResult;  // OpenGL Texture for cuda result
+
 
 // Regular OpenGL Texture
-unsigned int texture;
+unsigned int texture0;
 
 const GLenum fbo_targets[] =
 {
@@ -207,7 +207,6 @@ bool initGLFW(){
 
 void generateCUDAImage()
 {
-	// run the Cuda kernel
 	// calculate grid size
 	dim3 block(16, 16, 1);
 	dim3 grid(WIDTH / block.x, HEIGHT / block.y, 1); // 2D grid, every thread will compute a pixel
@@ -238,16 +237,15 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	//setBestCUDADevice();
+	setBestCUDADevice();
 
 	//initCUDABuffers();
 	initGLBuffers();
 	
 	//generateCUDAImage();
 
-	// Load simple OpenGL texture
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+    glGenTextures(1, &texture0); // Load simple OpenGL texture
+    glBindTexture(GL_TEXTURE_2D, texture0); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
     // set the texture wrapping parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
