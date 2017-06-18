@@ -4,7 +4,7 @@
 // CUDA
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
-#include "cuda_error_check.h"
+#include "libs/helper_cuda.h"
 #include "cuda_util.h"
 // C++ libs
 #include <string>
@@ -116,7 +116,7 @@ void createGLTextureForCUDA(GLuint* gl_tex, cudaGraphicsResource** cuda_tex, uns
 	// CUDA POINTER: cuda_tex_result_resource
 	// GL POINTER: tex_cudaresult
     // cudaGraphicsMapFlagsWriteDiscard: we're gonna write once and overwrite everything next frame
-	CATCH_CUDA_ERROR(cudaGraphicsGLRegisterImage(cuda_tex, *gl_tex, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+	checkCudaErrors(cudaGraphicsGLRegisterImage(cuda_tex, *gl_tex, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
 }
 
 void initGLBuffers()
@@ -139,7 +139,7 @@ void display(void){
 
 	glActiveTexture(GL_TEXTURE0);
 	// glEnable(GL_TEXTURE_2D); (not needed for core profile)
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, texture0);
 
 	//glDisable(GL_DEPTH_TEST);
 	//glDisable(GL_LIGHTING);
@@ -164,8 +164,6 @@ void display(void){
 
 // Keyboard
 void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mods){
-	switch (key) {
-	}
 }
 
 bool initGL(){
@@ -187,7 +185,7 @@ void initCUDABuffers()
 	num_texels = WIDTH * WIDTH;
 	num_values = num_texels * 4;
 	size_tex_data = sizeof(GLubyte) * num_values;
-	CATCH_CUDA_ERROR(cudaMalloc(&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
+	checkCudaErrors(cudaMalloc(&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
 }
 
 bool initGLFW(){
@@ -214,14 +212,14 @@ void generateCUDAImage()
 	// We want to copy cuda_dest_resource data to the texture
 	// map buffer objects to get CUDA device pointers
 	cudaArray *texture_ptr;
-	CATCH_CUDA_ERROR(cudaGraphicsMapResources(1, &cuda_tex_result_resource, 0));
-	CATCH_CUDA_ERROR(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_result_resource, 0, 0));
+	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_tex_result_resource, 0));
+	checkCudaErrors(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_result_resource, 0, 0));
 
 	int num_texels = WIDTH * HEIGHT;
 	int num_values = num_texels * 4;
 	int size_tex_data = sizeof(GLubyte) * num_values;
-	CHECK_CUDA_ERROR(cudaMemcpyToArray(texture_ptr, 0, 0, cuda_dest_resource, size_tex_data, cudaMemcpyDeviceToDevice));
-	CHECK_CUDA_ERROR(cudaGraphicsUnmapResources(1, &cuda_tex_result_resource, 0));
+	checkCudaErrors(cudaMemcpyToArray(texture_ptr, 0, 0, cuda_dest_resource, size_tex_data, cudaMemcpyDeviceToDevice));
+	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_tex_result_resource, 0));
 }
 
 int main(int argc, char *argv[]) {
