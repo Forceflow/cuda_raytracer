@@ -8,12 +8,12 @@
 #include "cuda_util.h"
 // C++ libs
 #include <string>
+#include <filesystem>
 #include "shader_tools.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
-#include <filesystem>
 
 using namespace std;
 
@@ -45,7 +45,6 @@ struct cudaGraphicsResource *cuda_tex_screen_resource;
 size_t size_tex_data;
 unsigned int num_texels;
 unsigned int num_values;
-
 
 // Regular OpenGL Texture
 unsigned int texture0;
@@ -169,7 +168,7 @@ void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mod
 bool initGL(){
 	glewExperimental = GL_TRUE; // need this to enforce core profile
 	GLenum err = glewInit();
-	glGetError();
+	glGetError(); // parse first error
 	if (err != GLEW_OK) {// Problem: glewInit failed, something is seriously wrong.
 		printf("glewInit failed: %s /n", glewGetErrorString(err));
 		exit(1);
@@ -237,7 +236,7 @@ int main(int argc, char *argv[]) {
 
 	setBestCUDADevice();
 
-	//initCUDABuffers();
+	initCUDABuffers();
 	initGLBuffers();
 	
 	//generateCUDAImage();
@@ -253,14 +252,11 @@ int main(int argc, char *argv[]) {
     // load image, create texture and generate mipmaps
     int width, height, nrChannels;
     unsigned char *data = stbi_load(std::string("D:/container.jpg").c_str(), &width, &height, &nrChannels, 0);
-    if (data)
-    {
+    if (data){
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-		printf("notex");
+    } else {
+		printf("No texture found ...");
     }
     stbi_image_free(data);
 
