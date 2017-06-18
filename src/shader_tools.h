@@ -4,7 +4,7 @@
 #include <fstream>
 #include <exception>
 
-// static, we only want this function to be available in this file scope
+// static, we only want this function to be available in this file's scope
 inline std::string loadFileToString(const char *filename){
 	std::ifstream file(filename, std::ios::in);
 	std::string text;
@@ -47,14 +47,10 @@ public:
 		shader = glCreateShader(shadertype);
 		glShaderSource(shader, 1, &shader_src, NULL);
 		glCompileShader(shader);
-
 		// check if shader compiled
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-
 		if (!compiled){
-			char temp[256] = "";
-			glGetShaderInfoLog(shader, 256, NULL, temp);
-			printf("(S) Shader compilation error:\n%s\n", temp);
+			getCompilationError(shader);
 			glDeleteShader(shader);
 			compiled = false;
 		}
@@ -62,27 +58,37 @@ public:
 			printf("(S) Compiled shader: \"%s\" (%i) \n", shader_name.c_str(), shader);
 		}
 	}
+
+private:
+	void getCompilationError(GLuint shader) {
+		int infologLength = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, (GLint *)&infologLength);
+		char* infoLog = (char *)malloc(infologLength);
+		glGetShaderInfoLog(shader, infologLength, NULL, infoLog); // will include terminate char
+		printf("(S) Shader compilation error:\n%s\n", infoLog);
+		free(infoLog);
+	}
 };
 
 class GLSLProgram{
 public:
 	GLuint program;
-	bool compiled;
+	bool linked;
 
 private:
 	GLSLShader* vertex_shader;
 	GLSLShader* fragment_shader;
 
 public:
-	GLSLProgram::GLSLProgram() : program(0), vertex_shader(NULL), fragment_shader(NULL), compiled(false) {
+	GLSLProgram::GLSLProgram() : program(0), vertex_shader(NULL), fragment_shader(NULL), linked(false) {
 	}
 
-	GLSLProgram::GLSLProgram(GLSLShader* vertex, GLSLShader* fragment) : program(0), vertex_shader(vertex), fragment_shader(fragment), compiled(false) {
+	GLSLProgram::GLSLProgram(GLSLShader* vertex, GLSLShader* fragment) : program(0), vertex_shader(vertex), fragment_shader(fragment), linked(false) {
 	}
 
 	void GLSLProgram::compile(){
-		program = glCreateProgram();
-
+		// create empty program
+		program = glCreateProgram(); 
 		// try to attach all shaders
 		GLSLShader* shaders[2] = {vertex_shader, fragment_shader};
 		for (unsigned int i = 0; i < 2; i++) {
@@ -98,22 +104,21 @@ public:
 				}
 			}
 		}
-		
+		// try to link program
 		glLinkProgram(program);
-		printf("(P) Linked program %i \n", program);
-
-		int infologLength = 0;
-		int charsWritten = 0;
-
-		glGetProgramiv(program, GL_INFO_LOG_LENGTH, (GLint *)&infologLength);
-
-		if (infologLength > 0){
-			char *infoLog = (char *)malloc(infologLength);
-			glGetProgramInfoLog(program, infologLength, (GLsizei *)&charsWritten, infoLog);
+		GLint isLinked = 0;
+		glGetProgramiv(program, GL_LINK_STATUS, &isLinked); // check if program linked
+		if (isLinked == GL_FALSE){
+			linked = false;
+			GLint infologLength = 0;
+			glGetProgramiv(program, GL_INFO_LOG_LENGTH, (GLint *)&infologLength);
+			char* infoLog = (char *) malloc(infologLength);
+			glGetProgramInfoLog(program, infologLength, NULL, infoLog); // will include terminate char
 			printf("(P) Program compilation error: %s\n", infoLog);
 			free(infoLog);
 		} else {
-			compiled = true;
+			linked = true;
+			printf("(P) Linked program %i \n", program);
 		}
 	}
 };
