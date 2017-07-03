@@ -25,12 +25,9 @@ int WIDTH = 256;
 int HEIGHT = 256;
 
 // OpenGL
-GLuint shaderProgram;
 GLuint VBO, VAO, EBO;
-GLSLShader draw_f; // GLSL fragment shader
 GLSLShader drawtex_f; // GLSL fragment shader
 GLSLShader drawtex_v; // GLSL fragment shader
-GLSLProgram shdraw; // GLSL program to draw
 GLSLProgram shdrawtex; // GLSLS program for textured draw
 
 // Cuda <-> OpenGl interop resources
@@ -50,12 +47,6 @@ unsigned int num_values;
 
 // Regular OpenGL Texture
 unsigned int texture0;
-
-const GLenum fbo_targets[] =
-{
-	GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT,
-	GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT
-};
 
 // Shaders from CUDA2GL sample
 static const char *glsl_drawtex_vertshader_src =
@@ -145,15 +136,11 @@ void display(void){
 	//glDisable(GL_DEPTH_TEST);
 	//glDisable(GL_LIGHTING);
 	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
 
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
-
-#ifndef USE_TEXSUBIMAGE2D
-	glUseProgram(shdrawtex.program);
-	GLint texLoc;
-	texLoc = glGetUniformLocation(shdrawtex.program, "tex0");
-	glUniform1i(texLoc, 0);
-#endif
+	glUseProgram(shdrawtex.program); // we gonna use this compiled GLSL program
+	// technicly not needed, since it will be initialized to 0 anyway, but good habits
+	glUniform1i(glGetUniformLocation(shdrawtex.program, "tex0"), 0);
 
 	glBindVertexArray(VAO); // binding VAO automatically binds EBO
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -257,9 +244,7 @@ int main(int argc, char *argv[]) {
     if (data){
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-		printf("No texture found ...");
-    }
+    } else { printf("No texture found ..."); }
     stbi_image_free(data);
 
 	// Buffer setup
