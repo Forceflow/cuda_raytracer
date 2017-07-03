@@ -11,6 +11,9 @@
     <ClCompile Include="..\src\main_basic_gl.cpp">
       <Filter>gl</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\main_textured_gl.cpp">
+      <Filter>gl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="cuda">
@@ -32,9 +35,6 @@
   <ItemGroup>
     <ClInclude Include="..\src\util_io.h">
       <Filter>util</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cuda_error_check.h">
-      <Filter>cuda</Filter>
     </ClInclude>
     <ClInclude Include="..\src\shader_tools.h" />
     <ClInclude Include="..\src\gl_tools.h">

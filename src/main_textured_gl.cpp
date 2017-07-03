@@ -1,19 +1,14 @@
 // OpenGL
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
-// CUDA
-#include <cuda_runtime.h>
-#include <cuda_gl_interop.h>
-#include "libs/helper_cuda.h"
-#include "cuda_util.h"
 // C++ libs
 #include <string>
-#include <filesystem>
 #include "shader_tools.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
+#include <filesystem>
 
 using namespace std;
 
@@ -31,23 +26,15 @@ GLSLShader drawtex_v; // GLSL fragment shader
 GLSLProgram shdraw; // GLSL program to draw
 GLSLProgram shdrawtex; // GLSLS program for textured draw
 
-// Cuda <-> OpenGl interop resources
-unsigned int* cuda_dest_resource;
-struct cudaGraphicsResource* cuda_tex_result_resource;
-extern "C" void
-launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
-GLuint tex_screen;      // where we render the image
-GLuint tex_cudaResult;  // OpenGL Texture for cuda result
-
-// CUDA
 GLuint fbo_source;
-struct cudaGraphicsResource *cuda_tex_screen_resource;
 size_t size_tex_data;
 unsigned int num_texels;
 unsigned int num_values;
+// (offscreen) render target fbo variables
+GLuint tex_screen;      // where we render the image
 
 // Regular OpenGL Texture
-unsigned int texture0;
+unsigned int texture;
 
 const GLenum fbo_targets[] =
 {
@@ -97,27 +84,6 @@ GLuint indices[] = {  // Note that we start from 0!
 	1, 2, 3   // Second Triangle
 };
 
-// Create 2D OpenGL texture in gl_tex and bind it to CUDA in cuda_tex
-void createGLTextureForCUDA(GLuint* gl_tex, cudaGraphicsResource** cuda_tex, unsigned int size_x, unsigned int size_y)
-{
-	// create an OpenGL texture
-	glGenTextures(1, gl_tex); // generate 1 texture
-	glBindTexture(GL_TEXTURE_2D, *gl_tex); // set it as current target
-	// set basic texture parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // clamp s coordinate
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // clamp t coordinate
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	// Specify 2D texture
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, size_x, size_y, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, NULL);
-	SDK_CHECK_ERROR_GL();
-	// Register this texture with CUDA
-	// CUDA POINTER: cuda_tex_result_resource
-	// GL POINTER: tex_cudaresult
-    // cudaGraphicsMapFlagsWriteDiscard: we're gonna write once and overwrite everything next frame
-	checkCudaErrors(cudaGraphicsGLRegisterImage(cuda_tex, *gl_tex, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
-}
-
 void initGLBuffers()
 {
 	// create texture that will receive the result of cuda
@@ -126,11 +92,11 @@ void initGLBuffers()
 	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
 	drawtex_f = GLSLShader("Textured draw fragment shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
 	shdrawtex = GLSLProgram(&drawtex_v, &drawtex_f);
-	shdrawtex.compile();	
+	shdrawtex.compile();
 	SDK_CHECK_ERROR_GL();
 }
 
-void display(void){
+void display(void) {
 	glfwPollEvents();
 	// Clear the colorbuffer
 	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -138,13 +104,7 @@ void display(void){
 
 	glActiveTexture(GL_TEXTURE0);
 	// glEnable(GL_TEXTURE_2D); (not needed for core profile)
-	glBindTexture(GL_TEXTURE_2D, texture0);
-
-	//glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LIGHTING);
-	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
-	// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
+	glBindTexture(GL_TEXTURE_2D, texture);
 
 #ifndef USE_TEXSUBIMAGE2D
 	glUseProgram(shdrawtex.program);
@@ -162,13 +122,15 @@ void display(void){
 }
 
 // Keyboard
-void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mods){
+void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	switch (key) {
+	}
 }
 
-bool initGL(){
+bool initGL() {
 	glewExperimental = GL_TRUE; // need this to enforce core profile
 	GLenum err = glewInit();
-	glGetError(); // parse first error
+	glGetError();
 	if (err != GLEW_OK) {// Problem: glewInit failed, something is seriously wrong.
 		printf("glewInit failed: %s /n", glewGetErrorString(err));
 		exit(1);
@@ -178,16 +140,7 @@ bool initGL(){
 	return true;
 }
 
-void initCUDABuffers()
-{
-	// set up vertex data parameters
-	num_texels = WIDTH * WIDTH;
-	num_values = num_texels * 4;
-	size_tex_data = sizeof(GLubyte) * num_values;
-	checkCudaErrors(cudaMalloc(&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
-}
-
-bool initGLFW(){
+bool initGLFW() {
 	if (!glfwInit()) exit(EXIT_FAILURE);
 	// These hints switch the OpenGL profile to core
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -195,30 +148,11 @@ bool initGLFW(){
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	window = glfwCreateWindow(WIDTH, WIDTH, "The Simplest OpenGL Quad", NULL, NULL);
-	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
+	if (!window) { glfwTerminate(); exit(EXIT_FAILURE); }
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 	glfwSetKeyCallback(window, keyboardfunc);
 	return true;
-}
-
-void generateCUDAImage()
-{
-	// calculate grid size
-	dim3 block(16, 16, 1);
-	dim3 grid(WIDTH / block.x, HEIGHT / block.y, 1); // 2D grid, every thread will compute a pixel
-	launch_cudaRender(grid, block, 0, cuda_dest_resource, WIDTH); // launch with 0 additional shared memory allocated
-	// We want to copy cuda_dest_resource data to the texture
-	// map buffer objects to get CUDA device pointers
-	cudaArray *texture_ptr;
-	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_tex_result_resource, 0));
-	checkCudaErrors(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_result_resource, 0, 0));
-
-	int num_texels = WIDTH * HEIGHT;
-	int num_values = num_texels * 4;
-	int size_tex_data = sizeof(GLubyte) * num_values;
-	checkCudaErrors(cudaMemcpyToArray(texture_ptr, 0, 0, cuda_dest_resource, size_tex_data, cudaMemcpyDeviceToDevice));
-	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_tex_result_resource, 0));
 }
 
 int main(int argc, char *argv[]) {
@@ -234,31 +168,30 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	setBestCUDADevice();
-
-	initCUDABuffers();
 	initGLBuffers();
-	
-	//generateCUDAImage();
 
-    glGenTextures(1, &texture0); // Load simple OpenGL texture
-    glBindTexture(GL_TEXTURE_2D, texture0); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(std::string("D:/container.jpg").c_str(), &width, &height, &nrChannels, 0);
-    if (data){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else {
-		printf("No texture found ...");
-    }
-    stbi_image_free(data);
+	// Load simple OpenGL texture
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+										   // set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load image, create texture and generate mipmaps
+	int width, height, nrChannels;
+	unsigned char *data = stbi_load(std::string("D:/container.jpg").c_str(), &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		printf("notex");
+	}
+	stbi_image_free(data);
 
 	// Buffer setup
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
