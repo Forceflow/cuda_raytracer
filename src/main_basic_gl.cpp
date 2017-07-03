@@ -1,8 +1,5 @@
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
-//#include "cuda_error_check.h"
-//#include <cuda_runtime.h>
-//#include <cuda_gl_interop.h>
 #include <string>
 
 #include "shader_tools.h"

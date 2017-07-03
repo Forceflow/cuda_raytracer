@@ -1,14 +1,16 @@
+#define GLEW_STATIC
+
 // OpenGL
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
 // C++ libs
 #include <string>
+#include <filesystem>
 #include "shader_tools.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
-#include <filesystem>
 
 using namespace std;
 
@@ -18,29 +20,13 @@ int WIDTH = 256;
 int HEIGHT = 256;
 
 // OpenGL
-GLuint shaderProgram;
 GLuint VBO, VAO, EBO;
-GLSLShader draw_f; // GLSL fragment shader
 GLSLShader drawtex_f; // GLSL fragment shader
 GLSLShader drawtex_v; // GLSL fragment shader
-GLSLProgram shdraw; // GLSL program to draw
 GLSLProgram shdrawtex; // GLSLS program for textured draw
 
-GLuint fbo_source;
-size_t size_tex_data;
-unsigned int num_texels;
-unsigned int num_values;
-// (offscreen) render target fbo variables
-GLuint tex_screen;      // where we render the image
-
 // Regular OpenGL Texture
-unsigned int texture;
-
-const GLenum fbo_targets[] =
-{
-	GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT,
-	GL_COLOR_ATTACHMENT2_EXT, GL_COLOR_ATTACHMENT3_EXT
-};
+unsigned int texture0;
 
 // Shaders from CUDA2GL sample
 static const char *glsl_drawtex_vertshader_src =
@@ -86,8 +72,6 @@ GLuint indices[] = {  // Note that we start from 0!
 
 void initGLBuffers()
 {
-	// create texture that will receive the result of cuda
-	createGLTextureForCUDA(&tex_cudaResult, &cuda_tex_result_resource, WIDTH, HEIGHT);
 	// create shader program
 	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
 	drawtex_f = GLSLShader("Textured draw fragment shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
@@ -104,14 +88,16 @@ void display(void) {
 
 	glActiveTexture(GL_TEXTURE0);
 	// glEnable(GL_TEXTURE_2D); (not needed for core profile)
-	glBindTexture(GL_TEXTURE_2D, texture);
+	glBindTexture(GL_TEXTURE_2D, texture0);
 
-#ifndef USE_TEXSUBIMAGE2D
-	glUseProgram(shdrawtex.program);
-	GLint texLoc;
-	texLoc = glGetUniformLocation(shdrawtex.program, "tex0");
-	glUniform1i(texLoc, 0);
-#endif
+	//glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_LIGHTING);
+	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
+
+	glUseProgram(shdrawtex.program); // we gonna use this compiled GLSL program
+	// technicly not needed, since it will be initialized to 0 anyway, but good habits
+	glUniform1i(glGetUniformLocation(shdrawtex.program, "tex0"), 0); 
 
 	glBindVertexArray(VAO); // binding VAO automatically binds EBO
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -123,14 +109,12 @@ void display(void) {
 
 // Keyboard
 void keyboardfunc(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	switch (key) {
-	}
 }
 
 bool initGL() {
 	glewExperimental = GL_TRUE; // need this to enforce core profile
 	GLenum err = glewInit();
-	glGetError();
+	glGetError(); // parse first error
 	if (err != GLEW_OK) {// Problem: glewInit failed, something is seriously wrong.
 		printf("glewInit failed: %s /n", glewGetErrorString(err));
 		exit(1);
@@ -170,10 +154,9 @@ int main(int argc, char *argv[]) {
 
 	initGLBuffers();
 
-	// Load simple OpenGL texture
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-										   // set the texture wrapping parameters
+	glGenTextures(1, &texture0); // Load simple OpenGL texture
+	glBindTexture(GL_TEXTURE_2D, texture0); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
+											// set the texture wrapping parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	// set texture filtering parameters
@@ -182,15 +165,11 @@ int main(int argc, char *argv[]) {
 	// load image, create texture and generate mipmaps
 	int width, height, nrChannels;
 	unsigned char *data = stbi_load(std::string("D:/container.jpg").c_str(), &width, &height, &nrChannels, 0);
-	if (data)
-	{
+	if (data) {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
-	else
-	{
-		printf("notex");
-	}
+	else { printf("No texture found ..."); }
 	stbi_image_free(data);
 
 	// Buffer setup
