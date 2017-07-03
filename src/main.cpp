@@ -1,3 +1,5 @@
+#define GLEW_STATIC
+
 // OpenGL
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
