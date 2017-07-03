@@ -19,6 +19,7 @@
     </ClCompile>
     <ClCompile Include="..\src\main_basic_gl.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\src\util_io.cpp" />
   </ItemGroup>
