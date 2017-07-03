@@ -1,3 +1,5 @@
+#define GLEW_STATIC
+
 // OpenGL
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
 #include <GLFW/glfw3.h>
@@ -8,12 +10,13 @@
 #include "cuda_util.h"
 // C++ libs
 #include <string>
+#include <filesystem>
+// Own helpers
 #include "shader_tools.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "libs/stb_image.h"
-#include <filesystem>
 
 using namespace std;
 
@@ -190,10 +193,10 @@ void initCUDABuffers()
 bool initGLFW(){
 	if (!glfwInit()) exit(EXIT_FAILURE);
 	// These hints switch the OpenGL profile to core
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	/*glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
 	window = glfwCreateWindow(WIDTH, WIDTH, "The Simplest OpenGL Quad", NULL, NULL);
 	if (!window){ glfwTerminate(); exit(EXIT_FAILURE); }
 	glfwMakeContextCurrent(window);
@@ -235,7 +238,7 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	//setBestCUDADevice();
+	setBestCUDADevice();
 
 	//initCUDABuffers();
 	initGLBuffers();
