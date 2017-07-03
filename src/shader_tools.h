@@ -25,6 +25,7 @@ inline std::string loadFileToString(const char *filename){
 	return text;
 }
 
+// TODO: keep copy of current shader in an internal string, not just a pointer
 class GLSLShader{
 public:
 	GLuint shader;
