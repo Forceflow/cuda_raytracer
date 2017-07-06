@@ -4,11 +4,18 @@
 #include <fstream>
 #include <exception>
 
+// Simple helper to switch between character arrays and C++ strings 
+struct ShaderStringHelper{
+	const char *p;
+	ShaderStringHelper(const std::string& s) : p(s.c_str()) {}
+	operator const char**() { return &p; }
+};
+
+// Function to load text from file
 // static, we only want this function to be available in this file's scope
-inline std::string loadFileToString(const char *filename){
+inline static std::string loadFileToString(const char *filename){
 	std::ifstream file(filename, std::ios::in);
 	std::string text;
-
 	if (file){
 		file.seekg(0, std::ios::end); // go to end
 		text.resize(file.tellg()); // resize text buffer to file size
@@ -21,11 +28,9 @@ inline std::string loadFileToString(const char *filename){
 		fprintf(stderr, error_message.c_str());
 		throw std::runtime_error(error_message);
 	}
-
 	return text;
 }
 
-// TODO: keep copy of current shader in an internal string, not just a pointer
 class GLSLShader{
 public:
 	GLuint shader;
@@ -33,20 +38,37 @@ public:
 	GLenum shadertype;
 	std::string shader_name;
 private:
-	const char* shader_src;
+	std::string shader_src; // internal string representation of shader
 
 public:
 	GLSLShader::GLSLShader() :
-		shader(0), compiled(false), shadertype(0), shader_name(""), shader_src(0) {
+		shader(0), compiled(false), shadertype(0), shader_name(""), shader_src("") {
 	}
 
 	GLSLShader::GLSLShader(std::string shader_name, const char *shader_text, GLenum shadertype) : 
-		shader(0), compiled(false), shadertype(shadertype), shader_name(shader_name), shader_src(shader_text){
+		shader(0), compiled(false), shadertype(shadertype), shader_name(shader_name), shader_src(std::string(shader_text)){
+	}
+
+	GLSLShader::GLSLShader(std::string shader_name, std::string shader_text, GLenum shadertype) :
+		shader(0), compiled(false), shadertype(shadertype), shader_name(shader_name), shader_src(shader_text) {
+	}
+	std::string GLSLShader::getSrc() const {
+		return shader_src;
+	}
+
+	void GLSLShader::setSrc(std::string new_source) {
+		shader_src = new_source;
+		compiled = false; // setting new source forces recompile
+	}
+
+	void GLSLShader::setSrc(const char* new_source) {
+		shader_src = std::string(new_source);
+		compiled = false; // setting new source forces recompile
 	}
 
 	void GLSLShader::compile(){
 		shader = glCreateShader(shadertype);
-		glShaderSource(shader, 1, &shader_src, NULL);
+		glShaderSource(shader, 1, ShaderStringHelper(shader_src), NULL);
 		glCompileShader(shader);
 		// check if shader compiled
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
@@ -61,7 +83,7 @@ public:
 	}
 
 private:
-	void getCompilationError(GLuint shader) {
+	void GLSLShader::getCompilationError(GLuint shader) {
 		int infologLength = 0;
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, (GLint *)&infologLength);
 		char* infoLog = (char *)malloc(infologLength);
@@ -101,6 +123,7 @@ public:
 				}
 				else {
 					printf("(P) Failed to attach shader \"%s\" (%i) to program \n", shaders[i]->shader_name.c_str(), shaders[i]->shader);
+					glDeleteProgram(program);
 					return;
 				}
 			}
@@ -110,16 +133,22 @@ public:
 		GLint isLinked = 0;
 		glGetProgramiv(program, GL_LINK_STATUS, &isLinked); // check if program linked
 		if (isLinked == GL_FALSE){
+			printLinkError(program);
+			glDeleteProgram(program);
 			linked = false;
-			GLint infologLength = 0;
-			glGetProgramiv(program, GL_INFO_LOG_LENGTH, (GLint *)&infologLength);
-			char* infoLog = (char *) malloc(infologLength);
-			glGetProgramInfoLog(program, infologLength, NULL, infoLog); // will include terminate char
-			printf("(P) Program compilation error: %s\n", infoLog);
-			free(infoLog);
 		} else {
 			linked = true;
 			printf("(P) Linked program %i \n", program);
 		}
+	}
+
+private:
+	void GLSLProgram::printLinkError(GLuint program) {
+		GLint infologLength = 0;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, (GLint *)&infologLength);
+		char* infoLog = (char *)malloc(infologLength);
+		glGetProgramInfoLog(program, infologLength, NULL, infoLog); // will include terminate char
+		printf("(P) Program compilation error: %s\n", infoLog);
+		free(infoLog);
 	}
 };
