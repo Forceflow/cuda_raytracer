@@ -1,4 +1,6 @@
-#define GLEW_STATIC
+#ifndef GLEW_STATIC
+	#define GLEW_STATIC
+#endif
 
 // OpenGL
 #include <GL/glew.h> // Take care: GLEW should be included before GLFW
@@ -11,7 +13,8 @@
 // C++ libs
 #include <string>
 #include <filesystem>
-#include "shader_tools.h"
+#include "shader_tools/GLSLProgram.h"
+#include "shader_tools/GLSLShader.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
 #define STB_IMAGE_IMPLEMENTATION

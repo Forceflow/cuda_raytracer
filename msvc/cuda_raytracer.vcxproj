@@ -14,6 +14,8 @@
     <CudaCompile Include="..\src\kernel.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLProgram.cpp" />
+    <ClCompile Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLShader.cpp" />
     <ClCompile Include="..\src\main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -28,11 +30,13 @@
     <ClCompile Include="..\src\util_io.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLProgram.h" />
+    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLShader.h" />
+    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\shader_tools_common.h" />
     <ClInclude Include="..\src\cuda_util.h" />
     <ClInclude Include="..\src\glfw_tools.h" />
     <ClInclude Include="..\src\gl_tools.h" />
     <ClInclude Include="..\src\libs\stb_image.h" />
-    <ClInclude Include="..\src\shader_tools.h" />
     <ClInclude Include="..\src\util_io.h" />
   </ItemGroup>
   <ItemGroup>
