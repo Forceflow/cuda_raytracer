@@ -14,8 +14,6 @@
     <CudaCompile Include="..\src\kernel.cu" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLProgram.cpp" />
-    <ClCompile Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLShader.cpp" />
     <ClCompile Include="..\src\main.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
     </ClCompile>
@@ -27,16 +25,18 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\src\shader_tools\GLSLProgram.cpp" />
+    <ClCompile Include="..\src\shader_tools\GLSLShader.cpp" />
     <ClCompile Include="..\src\util_io.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLProgram.h" />
-    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLShader.h" />
-    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\shader_tools_common.h" />
-    <ClInclude Include="..\src\cuda_util.h" />
     <ClInclude Include="..\src\glfw_tools.h" />
     <ClInclude Include="..\src\gl_tools.h" />
+    <ClInclude Include="..\src\libs\helper_cuda.h" />
     <ClInclude Include="..\src\libs\stb_image.h" />
+    <ClInclude Include="..\src\shader_tools\GLSLProgram.h" />
+    <ClInclude Include="..\src\shader_tools\GLSLShader.h" />
+    <ClInclude Include="..\src\shader_tools\shader_tools_common.h" />
     <ClInclude Include="..\src\util_io.h" />
   </ItemGroup>
   <ItemGroup>
@@ -46,24 +46,25 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D391DFA-632E-4481-9322-F0ABBFF59EF6}</ProjectGuid>
     <RootNamespace>cuda_raytracer</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 9.0.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -127,6 +128,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 8.0.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 9.0.targets" />
   </ImportGroup>
 </Project>

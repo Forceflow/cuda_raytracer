@@ -14,10 +14,10 @@
     <ClCompile Include="..\src\main_textured_gl.cpp">
       <Filter>gl</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLProgram.cpp">
+    <ClCompile Include="..\src\shader_tools\GLSLProgram.cpp">
       <Filter>shader_tools</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLShader.cpp">
+    <ClCompile Include="..\src\shader_tools\GLSLShader.cpp">
       <Filter>shader_tools</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,23 +51,20 @@
     <ClInclude Include="..\src\glfw_tools.h">
       <Filter>gl</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\shader_tools.h">
-      <Filter>gl</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cuda_util.h">
-      <Filter>cuda</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\libs\stb_image.h">
       <Filter>libs</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLProgram.h">
+    <ClInclude Include="..\src\shader_tools\GLSLProgram.h">
       <Filter>shader_tools</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\GLSLShader.h">
+    <ClInclude Include="..\src\shader_tools\GLSLShader.h">
       <Filter>shader_tools</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\jeroen\Downloads\shader_tools\shader_tools_common.h">
+    <ClInclude Include="..\src\shader_tools\shader_tools_common.h">
       <Filter>shader_tools</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\libs\helper_cuda.h">
+      <Filter>cuda</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
