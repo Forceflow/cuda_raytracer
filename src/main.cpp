@@ -9,7 +9,6 @@
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
 #include "libs/helper_cuda.h"
-#include "cuda_util.h"
 // C++ libs
 #include <string>
 #include <filesystem>
@@ -226,7 +225,7 @@ int main(int argc, char *argv[]) {
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
 
-	setBestCUDADevice();
+	findCudaDevice(argc, (const char**) argv);
 
 	initCUDABuffers();
 	initGLBuffers();
