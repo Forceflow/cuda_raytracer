@@ -33,6 +33,7 @@
     <ClInclude Include="..\src\glfw_tools.h" />
     <ClInclude Include="..\src\gl_tools.h" />
     <ClInclude Include="..\src\libs\helper_cuda.h" />
+    <ClInclude Include="..\src\libs\helper_string.h" />
     <ClInclude Include="..\src\libs\stb_image.h" />
     <ClInclude Include="..\src\shader_tools\GLSLProgram.h" />
     <ClInclude Include="..\src\shader_tools\GLSLShader.h" />
@@ -46,7 +47,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D391DFA-632E-4481-9322-F0ABBFF59EF6}</ProjectGuid>
     <RootNamespace>cuda_raytracer</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
