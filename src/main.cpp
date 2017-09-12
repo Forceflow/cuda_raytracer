@@ -200,6 +200,9 @@ void display(void) {
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, opengl_tex_cuda);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	shdrawtex.use(); // we gonna use this compiled GLSL program
 	glUniform1i(glGetUniformLocation(shdrawtex.program, "tex"), 0);
