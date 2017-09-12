@@ -33,6 +33,7 @@
     <ClInclude Include="..\src\glfw_tools.h" />
     <ClInclude Include="..\src\gl_tools.h" />
     <ClInclude Include="..\src\libs\helper_cuda.h" />
+    <ClInclude Include="..\src\libs\helper_cuda_gl.h" />
     <ClInclude Include="..\src\libs\helper_string.h" />
     <ClInclude Include="..\src\libs\stb_image.h" />
     <ClInclude Include="..\src\shader_tools\GLSLProgram.h" />
