@@ -42,7 +42,7 @@ cudaRender(unsigned int *g_odata, int imgw)
 	int y = blockIdx.y*bh + ty;
 
 	uchar4 c4 = make_uchar4((x & 0x20) ? 100 : 0, 0, (y & 0x20) ? 100 : 0, 0);
-	g_odata[y*imgw + x] = rgbToInt(150, 0, 0); // red-ish for test
+	g_odata[y*imgw + x] = rgbToInt(c4.z, c4.y, c4.x);
 }
 
 extern "C" void

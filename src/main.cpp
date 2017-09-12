@@ -9,6 +9,7 @@
 #include <cuda_runtime.h>
 #include <cuda_gl_interop.h>
 #include "libs/helper_cuda.h"
+#include "libs/helper_cuda_gl.h"
 // C++ libs
 #include <string>
 #include <filesystem>
@@ -33,16 +34,13 @@ GLSLShader drawtex_v; // GLSL fragment shader
 GLSLProgram shdrawtex; // GLSLS program for textured draw
 
 // Cuda <-> OpenGl interop resources
-unsigned int* cuda_dest_resource;
-struct cudaGraphicsResource* cuda_tex_result_resource;
+void* cuda_dev_render_buffer; // Cuda buffer for initial render
+struct cudaGraphicsResource* cuda_tex_resource;
+GLuint opengl_tex_cuda;  // OpenGL Texture for cuda result
 extern "C" void
 launch_cudaRender(dim3 grid, dim3 block, int sbytes, unsigned int *g_odata, int imgw);
-GLuint tex_screen;      // where we render the image
-GLuint tex_cudaResult;  // OpenGL Texture for cuda result
 
 // CUDA
-GLuint fbo_source;
-struct cudaGraphicsResource *cuda_tex_screen_resource;
 size_t size_tex_data;
 unsigned int num_texels;
 unsigned int num_values;
@@ -69,19 +67,20 @@ static const char *glsl_drawtex_vertshader_src =
 
 static const char *glsl_drawtex_fragshader_src =
 "#version 330 core\n"
-"uniform sampler2D tex0;\n"
+"uniform usampler2D tex;\n"
 "in vec3 ourColor;\n"
 "in vec2 ourTexCoord;\n"
 "out vec4 color;\n"
 "void main()\n"
 "{\n"
-"   	color = texture(tex0, ourTexCoord); \n"
+"   	vec4 c = texture(tex, ourTexCoord);\n"
+"   	color = c / 255.0;\n"
 "}\n";
 
 // QUAD GEOMETRY
 GLfloat vertices[] = {
 	// Positions          // Colors           // Texture Coords
-	0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // Top Right
+	1.0f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // Top Right
 	0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // Bottom Right
 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Bottom Left
 	-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // Top Left 
@@ -105,51 +104,22 @@ void createGLTextureForCUDA(GLuint* gl_tex, cudaGraphicsResource** cuda_tex, uns
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	// Specify 2D texture
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8UI_EXT, size_x, size_y, 0, GL_RGBA_INTEGER_EXT, GL_UNSIGNED_BYTE, NULL);
-	SDK_CHECK_ERROR_GL();
+	glGenerateMipmap(GL_TEXTURE_2D); // This is necessary for texture to show up in RenderDoc ... why?
 	// Register this texture with CUDA
-	// CUDA POINTER: cuda_tex_result_resource
-	// GL POINTER: tex_cudaresult
-    // cudaGraphicsMapFlagsWriteDiscard: we're gonna write once and overwrite everything next frame
-	checkCudaErrors(cudaGraphicsGLRegisterImage(cuda_tex, *gl_tex, GL_TEXTURE_2D, cudaGraphicsMapFlagsWriteDiscard));
+	checkCudaErrors(cudaGraphicsGLRegisterImage(cuda_tex, *gl_tex, GL_TEXTURE_2D, cudaGraphicsRegisterFlagsWriteDiscard));
+	SDK_CHECK_ERROR_GL();
 }
 
 void initGLBuffers()
 {
 	// create texture that will receive the result of cuda
-	createGLTextureForCUDA(&tex_cudaResult, &cuda_tex_result_resource, WIDTH, HEIGHT);
+	createGLTextureForCUDA(&opengl_tex_cuda, &cuda_tex_resource, WIDTH, HEIGHT);
 	// create shader program
 	drawtex_v = GLSLShader("Textured draw vertex shader", glsl_drawtex_vertshader_src, GL_VERTEX_SHADER);
 	drawtex_f = GLSLShader("Textured draw fragment shader", glsl_drawtex_fragshader_src, GL_FRAGMENT_SHADER);
 	shdrawtex = GLSLProgram(&drawtex_v, &drawtex_f);
 	shdrawtex.compile();	
 	SDK_CHECK_ERROR_GL();
-}
-
-void display(void){
-	glfwPollEvents();
-	// Clear the colorbuffer
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
-	glActiveTexture(GL_TEXTURE0);
-	// glEnable(GL_TEXTURE_2D); (not needed for core profile)
-	glBindTexture(GL_TEXTURE_2D, texture0);
-
-	//glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LIGHTING);
-	//glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe mode
-
-	glUseProgram(shdrawtex.program); // we gonna use this compiled GLSL program
-	// technicly not needed, since it will be initialized to 0 anyway, but good habits
-	glUniform1i(glGetUniformLocation(shdrawtex.program, "tex0"), 0);
-
-	glBindVertexArray(VAO); // binding VAO automatically binds EBO
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0); // unbind VAO
-
-	// Swap the screen buffers
-	glfwSwapBuffers(window);
 }
 
 // Keyboard
@@ -175,7 +145,7 @@ void initCUDABuffers()
 	num_texels = WIDTH * WIDTH;
 	num_values = num_texels * 4;
 	size_tex_data = sizeof(GLubyte) * num_values;
-	checkCudaErrors(cudaMalloc(&cuda_dest_resource, size_tex_data)); // Allocate CUDA memory for color output
+	checkCudaErrors(cudaMalloc(&cuda_dev_render_buffer, size_tex_data)); // Allocate CUDA memory for color output
 }
 
 bool initGLFW(){
@@ -198,18 +168,50 @@ void generateCUDAImage()
 	// calculate grid size
 	dim3 block(16, 16, 1);
 	dim3 grid(WIDTH / block.x, HEIGHT / block.y, 1); // 2D grid, every thread will compute a pixel
-	launch_cudaRender(grid, block, 0, cuda_dest_resource, WIDTH); // launch with 0 additional shared memory allocated
-	// We want to copy cuda_dest_resource data to the texture
-	// map buffer objects to get CUDA device pointers
+	launch_cudaRender(grid, block, 0, (unsigned int *) cuda_dev_render_buffer, WIDTH); // launch with 0 additional shared memory allocated
+
+	GLbyte test[8] = { 0,0,0,0,0,0,0,0 };
+	checkCudaErrors(cudaMemcpy(&test, cuda_dev_render_buffer, 8, cudaMemcpyDeviceToHost));
+
+	// We want to copy cuda_dev_render_buffer data to the texture
+	// Map buffer objects to get CUDA device pointers
 	cudaArray *texture_ptr;
-	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_tex_result_resource, 0));
-	checkCudaErrors(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_result_resource, 0, 0));
+	checkCudaErrors(cudaGraphicsMapResources(1, &cuda_tex_resource, 0));
+	checkCudaErrors(cudaGraphicsSubResourceGetMappedArray(&texture_ptr, cuda_tex_resource, 0, 0));
 
 	int num_texels = WIDTH * HEIGHT;
 	int num_values = num_texels * 4;
 	int size_tex_data = sizeof(GLubyte) * num_values;
-	checkCudaErrors(cudaMemcpyToArray(texture_ptr, 0, 0, cuda_dest_resource, size_tex_data, cudaMemcpyDeviceToDevice));
-	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_tex_result_resource, 0));
+	checkCudaErrors(cudaMemcpyToArray(texture_ptr, 0, 0, cuda_dev_render_buffer, size_tex_data, cudaMemcpyDeviceToDevice));
+	
+	GLbyte test2[8] = { 0,0,0,0,0,0,0,0 };
+	cudaMemcpy2DFromArray(&test2, 0, texture_ptr, 1, 0, 8, 1, cudaMemcpyDeviceToHost);
+	
+	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_tex_resource, 0));
+}
+
+void display(void) {
+
+	generateCUDAImage();
+	glfwPollEvents();
+	// Clear the colorbuffer
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, opengl_tex_cuda);
+
+	shdrawtex.use(); // we gonna use this compiled GLSL program
+	glUniform1i(glGetUniformLocation(shdrawtex.program, "tex"), 0);
+
+	glBindVertexArray(VAO); // binding VAO automatically binds EBO
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0); // unbind VAO
+
+	SDK_CHECK_ERROR_GL();
+	
+	// Swap the screen buffers
+	glfwSwapBuffers(window);
 }
 
 int main(int argc, char *argv[]) {
@@ -220,18 +222,10 @@ int main(int argc, char *argv[]) {
 	printGlewInfo();
 	printGLInfo();
 
-	// Generate buffers
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-
-	findCudaDevice(argc, (const char**) argv);
-
-	initCUDABuffers();
+	findCudaGLDevice(argc, (const char **)argv);
 	initGLBuffers();
+	initCUDABuffers();
 	
-	//generateCUDAImage();
-
     glGenTextures(1, &texture0); // Load simple OpenGL texture
     glBindTexture(GL_TEXTURE_2D, texture0); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
     // set the texture wrapping parameters
@@ -248,6 +242,11 @@ int main(int argc, char *argv[]) {
         glGenerateMipmap(GL_TEXTURE_2D);
     } else { printf("No texture found ..."); }
     stbi_image_free(data);
+
+	// Generate buffers
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glGenBuffers(1, &EBO);
 
 	// Buffer setup
 	// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
