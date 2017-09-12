@@ -38,6 +38,10 @@ void GLSLProgram::compile() {
 	}
 }
 
+void GLSLProgram::use() {
+	glUseProgram(this->program);
+}
+
 void GLSLProgram::printLinkError(GLuint program) {
 	GLint infologLength = 0;
 	glGetProgramiv(program, GL_INFO_LOG_LENGTH, (GLint *)&infologLength);
