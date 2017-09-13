@@ -80,7 +80,7 @@ static const char *glsl_drawtex_fragshader_src =
 // QUAD GEOMETRY
 GLfloat vertices[] = {
 	// Positions          // Colors           // Texture Coords
-	1.0f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // Top Right
+	0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,  // Top Right
 	0.5f, -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,  // Bottom Right
 	-0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,  // Bottom Left
 	-0.5f, 0.5f, 0.5f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // Top Left 
@@ -170,8 +170,8 @@ void generateCUDAImage()
 	dim3 grid(WIDTH / block.x, HEIGHT / block.y, 1); // 2D grid, every thread will compute a pixel
 	launch_cudaRender(grid, block, 0, (unsigned int *) cuda_dev_render_buffer, WIDTH); // launch with 0 additional shared memory allocated
 
-	GLbyte test[8] = { 0,0,0,0,0,0,0,0 };
-	checkCudaErrors(cudaMemcpy(&test, cuda_dev_render_buffer, 8, cudaMemcpyDeviceToHost));
+	//GLbyte test[8] = { 0,0,0,0,0,0,0,0 };
+	//checkCudaErrors(cudaMemcpy(&test, cuda_dev_render_buffer, 8, cudaMemcpyDeviceToHost));
 
 	// We want to copy cuda_dev_render_buffer data to the texture
 	// Map buffer objects to get CUDA device pointers
@@ -184,18 +184,18 @@ void generateCUDAImage()
 	int size_tex_data = sizeof(GLubyte) * num_values;
 	checkCudaErrors(cudaMemcpyToArray(texture_ptr, 0, 0, cuda_dev_render_buffer, size_tex_data, cudaMemcpyDeviceToDevice));
 	
-	GLbyte test2[8] = { 0,0,0,0,0,0,0,0 };
-	cudaMemcpy2DFromArray(&test2, 0, texture_ptr, 1, 0, 8, 1, cudaMemcpyDeviceToHost);
+	//GLbyte test2[8] = { 0,0,0,0,0,0,0,0 };
+	//cudaMemcpy2DFromArray(&test2, 0, texture_ptr, 1, 0, 8, 1, cudaMemcpyDeviceToHost);
 	
 	checkCudaErrors(cudaGraphicsUnmapResources(1, &cuda_tex_resource, 0));
 }
 
 void display(void) {
+	glfwPollEvents(); // Process events
 
 	generateCUDAImage();
-	glfwPollEvents();
-	// Clear the colorbuffer
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // Clear the colorbuffer
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0);
