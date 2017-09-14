@@ -72,6 +72,9 @@
     <ClInclude Include="..\src\libs\helper_cuda_gl.h">
       <Filter>cuda</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\gl_texture_tools.h">
+      <Filter>gl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\shaders\fragment_shader.glsl">

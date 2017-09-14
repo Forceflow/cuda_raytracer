@@ -17,6 +17,7 @@
 #include "shader_tools/GLSLShader.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
+#include "gl_texture_tools.h"
 
 using namespace std;
 
