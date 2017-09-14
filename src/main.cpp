@@ -17,8 +17,6 @@
 #include "shader_tools/GLSLShader.h"
 #include "gl_tools.h"
 #include "glfw_tools.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "libs/stb_image.h"
 
 using namespace std;
 
@@ -46,7 +44,7 @@ unsigned int num_texels;
 unsigned int num_values;
 
 // Regular OpenGL Texture
-unsigned int texture0;
+GLuint texture0;
 
 // Shaders from CUDA2GL sample
 static const char *glsl_drawtex_vertshader_src =
@@ -224,24 +222,9 @@ int main(int argc, char *argv[]) {
 	findCudaGLDevice(argc, (const char **)argv);
 	initGLBuffers();
 	initCUDABuffers();
-	
-    glGenTextures(1, &texture0); // Load simple OpenGL texture
-    glBindTexture(GL_TEXTURE_2D, texture0); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int width, height, nrChannels;
-    unsigned char *data = stbi_load(std::string("D:/container.jpg").c_str(), &width, &height, &nrChannels, 0);
-    if (data){
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    } else { printf("No texture found ..."); }
-    stbi_image_free(data);
 
+	texture0 = loadTextureFromFile(std::string("D:/container.jpg"));
+	
 	// Generate buffers
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
