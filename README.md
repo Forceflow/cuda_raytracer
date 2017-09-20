@@ -1,2 +1,2 @@
 # cuda_raytracer
-Cuda raytracer
+Cuda raytracer.
